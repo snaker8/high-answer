@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공통수학2 학습 대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- LaTeX Rendering Support (MathJax) -->
+    <script>
+        window.MathJax = {
+            tex: { 
+                inlineMath: [['$', '$'], ['\\(', '\\)']], 
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                enableMenu: false
+            },
+            svg: { fontCache: 'global' },
+            startup: {
+                ready: () => {
+                    MathJax.startup.defaultReady();
+                    MathJax.startup.promise.then(() => {
+                        console.log('MathJax initial typesetting complete');
+                    });
+                }
+            }
+        };
+    </script>
+    <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+    <script>
+        // --- LOCAL STORAGE MANAGER ---
+        const STORAGE_KEY = 'math2_learning_progress_v1';
+
+        const LocalDB = {
+            save: (checkedIds) => {
+                const data = JSON.stringify(Array.from(checkedIds));
+                localStorage.setItem(STORAGE_KEY, data);
+                return true;
+            },
+            load: () => {
+                const data = localStorage.getItem(STORAGE_KEY);
+                return data ? new Set(JSON.parse(data)) : new Set();
+            }
+        };
+
+        const state = {
+            activeLecture: 1,
+            filter: 'all',
+            search: '',
+            spoilerMode: false,
+            checkedIds: new Set(),
+            isSyncing: false
+        };
+
+        let progressChart = null;
+        let mathJaxPromise = Promise.resolve();
+
+        /* COMPLETE DATA SET (Common Math 2) */
+        const allProblems = [
+            // ================= LECTURE 1: 평면좌표 (점과 좌표) =================
+            { id: "l1-c1", lecture: 1, section: "concept", title: "01", category: "개념 CHECK", mainAns: "(1) $5$ <br> (2) $9$ <br> (3) $3$" },
+            { id: "l1-c2", lecture: 1, section: "concept", title: "02", category: "개념 CHECK", mainAns: "$-1, 5$" },
+            { id: "l1-c3", lecture: 1, section: "concept", title: "03", category: "개념 CHECK", mainAns: "(1) $2\\sqrt{2}$ <br> (2) $\\sqrt{13}$ <br> (3) $\\sqrt{34}$" },
+            { id: "l1-e1", lecture: 1, section: "example", title: "01", category: "대표 & 확인", mainAns: "(1) $-2, 2$ <br> (2) $3$", checkAns: "$-3$" },
+            { id: "l1-e2", lecture: 1, section: "example", title: "02", category: "대표 & 확인", mainAns: "$(0, -1)$", checkAns: "$(\\frac{1}{2}, \\frac{1}{2})$" },
+            { id: "l1-e3", lecture: 1, section: "example", title: "03", category: "대표 & 확인", mainAns: "$37$", checkAns: "$(\\frac{15}{4}, \\frac{15}{4})$" },
+            { id: "l1-e4", lecture: 1, section: "example", title: "04", category: "대표 & 확인", mainAns: "$\\angle A=90^\\circ$인 직각삼각형", checkAns: "$1-\\sqrt{6}$" },
+            { id: "l1-e5", lecture: 1, section: "example", title: "05", category: "대표 & 확인", mainAns: "(1) 풀이 참조 <br> (2) $\\sqrt{33}$", checkAns: "풀이 참조" },
+            { id: "l1-c_in1", lecture: 1, section: "concept", title: "내분점 01", category: "개념 CHECK", mainAns: "(1) $2, 1$ <br> (2) $5, 1$ <br> (3) $-1$ <br> (4) $0$" },
+            { id: "l1-c_in2", lecture: 1, section: "concept", title: "내분점 02", category: "개념 CHECK", mainAns: "(1) $3, 2$ <br> (2) $4, 1$ <br> (3) $-2, \\frac{3}{2}$" },
+            { id: "l1-c_in3", lecture: 1, section: "concept", title: "내분점 03", category: "개념 CHECK", mainAns: "(1) $(1, 5)$ <br> (2) $(-1, -1)$ <br> (3) $(0, -3)$" },
+            { id: "l1-e6", lecture: 1, section: "example", title: "06", category: "대표 & 확인", mainAns: "$P(0, 4), Q(2, 1)$", checkAns: "$(\\frac{1}{2}, 3)$" },
+            { id: "l1-e6-2", lecture: 1, section: "example", title: "06 (무게중심)", category: "대표 & 확인", mainAns: "(1) $a=-2, b=4$ <br> (2) $k=-1$", checkAns: "$33$" },
+            { id: "l1-e7", lecture: 1, section: "example", title: "07", category: "대표 & 확인", mainAns: "$\\frac{1}{10} < t < \\frac{2}{3}$", checkAns: "$\\frac{5}{8}$" },
+            // 유형학습 L1
+            { id: "l1-s1", lecture: 1, section: "similar", title: "유형 01", category: "유형학습", mainAns: "$2$" },
+            { id: "l1-s2", lecture: 1, section: "similar", title: "유형 02", category: "유형학습", mainAns: "$(2, 0)$" },
+            { id: "l1-s2-2", lecture: 1, section: "similar", title: "유형 02-2", category: "유형학습", mainAns: "$-30$" },
+            { id: "l1-s3", lecture: 1, section: "similar", title: "유형 03", category: "유형학습", mainAns: "$52$" },
+            { id: "l1-s3-2", lecture: 1, section: "similar", title: "유형 03-2", category: "유형학습", mainAns: "$126$" },
+            { id: "l1-s4", lecture: 1, section: "similar", title: "유형 04", category: "유형학습", mainAns: "$BC=CA$인 이등변삼각형" },
+            { id: "l1-s5", lecture: 1, section: "similar", title: "유형 05", category: "유형학습", mainAns: "풀이 참조" },
+            { id: "l1-s6", lecture: 1, section: "similar", title: "유형 06", category: "유형학습", mainAns: "$P(1, -1), Q(9, -7)$" },
+            { id: "l1-s6-2", lecture: 1, section: "similar", title: "유형 06-2", category: "유형학습", mainAns: "$97$" },
+            { id: "l1-s7", lecture: 1, section: "similar", title: "유형 07", category: "유형학습", mainAns: "$\\frac{10}{13}$" },
+
+            // ================= LECTURE 2: 직선의 방정식 =================
+            { id: "l2-c1", lecture: 2, section: "concept", title: "01", category: "개념 CHECK", mainAns: "(1) $y=3x+10$ <br> (2) $y=-6x+3$ <br> (3) $x=5$ <br> (4) $y=-3$" },
+            { id: "l2-e1", lecture: 2, section: "example", title: "01", category: "대표 & 확인", mainAns: "(1) $y=2x-3$ <br> (2) $y=\\frac{\\sqrt{3}}{3}x+\\frac{2\\sqrt{3}}{3}$", checkAns: "$(0, \\frac{39}{5})$" },
+            { id: "l2-e2", lecture: 2, section: "example", title: "02", category: "대표 & 확인", mainAns: "(1) $-1$ <br> (2) $-2$", checkAns: "$25$" },
+            { id: "l2-e3", lecture: 2, section: "example", title: "03", category: "대표 & 확인", mainAns: "$9$", checkAns: "$-\\frac{3}{4}$" },
+            { id: "l2-e4", lecture: 2, section: "example", title: "04", category: "대표 & 확인", mainAns: "$y=-x+4$", checkAns: "$y=-x+5$" },
+            { id: "l2-e5", lecture: 2, section: "example", title: "05", category: "대표 & 확인", mainAns: "(1) 제2, 4사분면 <br> (2) 제1, 2, 3사분면", checkAns: "제1, 3, 4사분면" },
+            { id: "l2-e8", lecture: 2, section: "example", title: "08", category: "대표 & 확인", mainAns: "$(-5, -1)$", checkAns: "$(4, 0)$" },
+            { id: "l2-e9", lecture: 2, section: "example", title: "09", category: "대표 & 확인", mainAns: "$(-2, 11)$", checkAns: "$C(-11, -1), D(-9, -3)$" },
+            { id: "l2-e10", lecture: 2, section: "example", title: "10", category: "대표 & 확인", mainAns: "$(2, 0)$", checkAns: "$3$" },
+            // 유형학습 L2
+            { id: "l2-s1", lecture: 2, section: "similar", title: "유형 01", category: "유형학습", mainAns: "$y=-2x+5$" },
+            { id: "l2-s1-2", lecture: 2, section: "similar", title: "유형 01-2", category: "유형학습", mainAns: "$y=x+2$" },
+            { id: "l2-s2", lecture: 2, section: "similar", title: "유형 02", category: "유형학습", mainAns: "$y=\\frac{1}{2}x+4$" },
+            { id: "l2-s2-2", lecture: 2, section: "similar", title: "유형 02-2", category: "유형학습", mainAns: "$10$" },
+            { id: "l2-s3", lecture: 2, section: "similar", title: "유형 03", category: "유형학습", mainAns: "$2$" },
+            { id: "l2-s4", lecture: 2, section: "similar", title: "유형 04", category: "유형학습", mainAns: "$\\frac{1}{7}$" },
+            { id: "l2-s5", lecture: 2, section: "similar", title: "유형 05", category: "유형학습", mainAns: "제2사분면" },
+            { id: "l2-s8", lecture: 2, section: "similar", title: "유형 08", category: "유형학습", mainAns: "$11$" },
+            { id: "l2-s9", lecture: 2, section: "similar", title: "유형 09", category: "유형학습", mainAns: "$16$" },
+            { id: "l2-s10", lecture: 2, section: "similar", title: "유형 10", category: "유형학습", mainAns: "$(-\\frac{3}{2}, \\frac{1}{2})$" },
+            { id: "l2-s10-2", lecture: 2, section: "similar", title: "유형 10-2", category: "유형학습", mainAns: "$(-\\frac{1}{2}, -\\frac{1}{2})$" },
+
+            // ================= LECTURE 3: 두 직선의 위치 관계 / 점과 직선 사이의 거리 =================
+            { id: "l3-c1", lecture: 3, section: "concept", title: "01", category: "개념 CHECK", mainAns: "(1) $a=-\\frac{1}{2}, b=\\frac{3}{2}$ <br> (2) $a=6, b=2$" },
+            { id: "l3-c2", lecture: 3, section: "concept", title: "02", category: "개념 CHECK", mainAns: "(1) $3$ <br> (2) $52$" },
+            { id: "l3-e6", lecture: 3, section: "example", title: "06", category: "대표 & 확인", mainAns: "$\\frac{12}{5}$", checkAns: "$\\frac{5}{3}$" },
+            { id: "l3-e7", lecture: 3, section: "example", title: "07", category: "대표 & 확인", mainAns: "$\\frac{1}{6} \\le m \\le \\frac{4}{3}$", checkAns: "$1 < m < 2$" },
+            { id: "l3-e8", lecture: 3, section: "example", title: "08", category: "대표 & 확인", mainAns: "$-7$", checkAns: "$x-9y-4=0$" },
+            { id: "l3-e9", lecture: 3, section: "example", title: "09", category: "대표 & 확인", mainAns: "(1) $y=-2x+7$ <br> (2) $y=\\frac{1}{2}x+\\frac{3}{2}$", checkAns: "$y=\\frac{2}{5}x-2$" },
+            { id: "l3-e10", lecture: 3, section: "example", title: "10", category: "대표 & 확인", mainAns: "(1) $8$ <br> (2) $\\frac{32}{19}$", checkAns: "$-11$" },
+            { id: "l3-e11", lecture: 3, section: "example", title: "11", category: "대표 & 확인", mainAns: "$6$", checkAns: "$1$" },
+            { id: "l3-c_dist1", lecture: 3, section: "concept", title: "거리 01", category: "개념 CHECK", mainAns: "(1) $8$ <br> (2) $\\frac{3\\sqrt{5}}{5}$" },
+            { id: "l3-c_dist2", lecture: 3, section: "concept", title: "거리 02", category: "개념 CHECK", mainAns: "(1) $\\sqrt{2}$ <br> (2) $\\frac{10\\sqrt{13}}{13}$ <br> (3) $2$ <br> (4) $\\frac{3\\sqrt{5}}{2}$" },
+            { id: "l3-e12", lecture: 3, section: "example", title: "12", category: "대표 & 확인", mainAns: "$10$", checkAns: "$4x-3y-39=0, 4x-3y+21=0$" },
+            { id: "l3-e13", lecture: 3, section: "example", title: "13", category: "대표 & 확인", mainAns: "$2$", checkAns: "$-12$" },
+            { id: "l3-e14", lecture: 3, section: "example", title: "14", category: "대표 & 확인", mainAns: "$12$", checkAns: "$\\frac{21}{2}$" },
+            { id: "l3-e15", lecture: 3, section: "example", title: "15", category: "대표 & 확인", mainAns: "$x+y+5=0, 5x-y-3=0$", checkAns: "$8$" },
+            // 유형학습 L3
+            { id: "l3-s6", lecture: 3, section: "similar", title: "유형 06", category: "유형학습", mainAns: "$-1$" },
+            { id: "l3-s7", lecture: 3, section: "similar", title: "유형 07", category: "유형학습", mainAns: "$-\\frac{7}{2}$" },
+            { id: "l3-s8", lecture: 3, section: "similar", title: "유형 08", category: "유형학습", mainAns: "$3$" },
+            { id: "l3-s9", lecture: 3, section: "similar", title: "유형 09", category: "유형학습", mainAns: "$y=-3x+19$" },
+            { id: "l3-s9-2", lecture: 3, section: "similar", title: "유형 09-2", category: "유형학습", mainAns: "$y=\\frac{3}{2}x-10$" },
+            { id: "l3-s10", lecture: 3, section: "similar", title: "유형 10", category: "유형학습", mainAns: "(1) $-5$ <br> (2) $\\frac{10}{13}$" },
+            { id: "l3-s11", lecture: 3, section: "similar", title: "유형 11", category: "유형학습", mainAns: "$48$" },
+            { id: "l3-s12", lecture: 3, section: "similar", title: "유형 12", category: "유형학습", mainAns: "$-6$" },
+            { id: "l3-s13", lecture: 3, section: "similar", title: "유형 13", category: "유형학습", mainAns: "$\\sqrt{5}$" },
+            { id: "l3-s14", lecture: 3, section: "similar", title: "유형 14", category: "유형학습", mainAns: "$7$" },
+            { id: "l3-s15", lecture: 3, section: "similar", title: "유형 15", category: "유형학습", mainAns: "$3x-3y+7=0, x+y+1=0$" },
+
+            // ================= LECTURE 4: 원의 방정식 =================
+            { id: "l4-c1", lecture: 4, section: "concept", title: "01", category: "개념 CHECK", mainAns: "(1) $(x-1)^2+(y-3)^2=18$ <br> (2) $x^2+y^2=16$" },
+            { id: "l4-c2", lecture: 4, section: "concept", title: "02", category: "개념 CHECK", mainAns: "(1) $k<\\frac{5}{4}$ <br> (2) $k<-3$ 또는 $k>\\frac{3}{2}$" },
+            { id: "l4-c3", lecture: 4, section: "concept", title: "03", category: "개념 CHECK", mainAns: "(1) $4$ <br> (2) $1$" },
+            { id: "l4-e1", lecture: 4, section: "example", title: "01", category: "대표 & 확인", mainAns: "$(x+3)^2+(y+1)^2=10$", checkAns: "$4$" },
+            { id: "l4-e2", lecture: 4, section: "example", title: "02", category: "대표 & 확인", mainAns: "$(x-6)^2+(y+6)^2=20$", checkAns: "$3$" },
+            { id: "l4-e3", lecture: 4, section: "example", title: "03", category: "대표 & 확인", mainAns: "$17$", checkAns: "$\\sqrt{10}$" },
+            { id: "l4-e4", lecture: 4, section: "example", title: "04", category: "대표 & 확인", mainAns: "(1) $a=3, b=-4, r=3\\sqrt{3}$ <br> (2) $-1<k<4$", checkAns: "$\\frac{1}{2}$" },
+            { id: "l4-e5", lecture: 4, section: "example", title: "05", category: "대표 & 확인", mainAns: "$x^2+y^2+10x-10y=0$", checkAns: "$-6, 8$" },
+            { id: "l4-e6", lecture: 4, section: "example", title: "06", category: "대표 & 확인", mainAns: "(1) $(x-1)^2+(y-2)^2=1$ <br> (2) $(x+5)^2+(y-1)^2=1$", checkAns: "$12$" },
+            { id: "l4-c_2c1", lecture: 4, section: "concept", title: "교점 01", category: "개념 CHECK", mainAns: "(1) $6x+8y-17=0$ <br> (2) $x-2y+4=0$" },
+            { id: "l4-c_2c2", lecture: 4, section: "concept", title: "교점 02", category: "개념 CHECK", mainAns: "(1) $x^2+y^2+x-2y=0$ <br> (2) $x^2+y^2-\\frac{1}{7}x-\\frac{5}{7}y=0$" },
+            { id: "l4-e7", lecture: 4, section: "example", title: "07", category: "대표 & 확인", mainAns: "$5$", checkAns: "$-4$" },
+            { id: "l4-e8", lecture: 4, section: "example", title: "08", category: "대표 & 확인", mainAns: "$x^2+y^2-7x+2y-8=0$", checkAns: "$-\\frac{4}{3}, 5\\pi$" },
+            // 유형학습 L4
+            { id: "l4-s1", lecture: 4, section: "similar", title: "유형 01", category: "유형학습", mainAns: "$(x-2)^2+(y-4)^2=25$" },
+            { id: "l4-s2", lecture: 4, section: "similar", title: "유형 02", category: "유형학습", mainAns: "$(x-2)^2+(y-1)^2=41$" },
+            { id: "l4-s3", lecture: 4, section: "similar", title: "유형 03", category: "유형학습", mainAns: "$(0, \\frac{2}{3})$" },
+            { id: "l4-s3-2", lecture: 4, section: "similar", title: "유형 03-2", category: "유형학습", mainAns: "$(x-7)^2+(y+10)^2=25, (x-7)^2+(y+2)^2=25$" },
+            { id: "l4-s4", lecture: 4, section: "similar", title: "유형 04", category: "유형학습", mainAns: "$6\\sqrt{3}$" },
+            { id: "l4-s5", lecture: 4, section: "similar", title: "유형 05", category: "유형학습", mainAns: "$-6$" },
+            { id: "l4-s6", lecture: 4, section: "similar", title: "유형 06", category: "유형학습", mainAns: "$(x-1)^2+(y+4)^2=16$" },
+            { id: "l4-s6-2", lecture: 4, section: "similar", title: "유형 06-2", category: "유형학습", mainAns: "$3.75$" },
+            { id: "l4-s7", lecture: 4, section: "similar", title: "유형 07", category: "유형학습", mainAns: "$6$" },
+            { id: "l4-s8", lecture: 4, section: "similar", title: "유형 08", category: "유형학습", mainAns: "$x^2+y^2+7x+6y-9=0$" },
+
+            // ================= LECTURE 5: 원과 직선의 위치 관계 =================
+            { id: "l5-c1", lecture: 5, section: "concept", title: "01", category: "개념 CHECK", mainAns: "(1) 한 점에서 만난다 (접한다) <br> (2) 서로 다른 두 점에서 만난다" },
+            { id: "l5-c2", lecture: 5, section: "concept", title: "02", category: "개념 CHECK", mainAns: "(1) $-4<k<4$ <br> (2) $k=\\pm4$ <br> (3) $k<-4$ 또는 $k>4$" },
+            { id: "l5-c3", lecture: 5, section: "concept", title: "03", category: "개념 CHECK", mainAns: "$4\\sqrt{2}$" },
+            { id: "l5-e9", lecture: 5, section: "example", title: "09", category: "대표 & 확인", mainAns: "(1) $-5<k<5$ <br> (2) $k=\\pm5$ <br> (3) $k<-5$ 또는 $k>5$", checkAns: "(1) $m<-\\sqrt{3}$ 또는 $m>\\sqrt{3}$ <br> (2) $m=\\pm\\sqrt{3}$ <br> (3) $-\\sqrt{3}<m<\\sqrt{3}$" },
+            { id: "l5-e10", lecture: 5, section: "example", title: "10", category: "대표 & 확인", mainAns: "$2.5$", checkAns: "$6$" },
+            { id: "l5-e11", lecture: 5, section: "example", title: "11", category: "대표 & 확인", mainAns: "$4$", checkAns: "$\\frac{3}{2}\\pi$" },
+            { id: "l5-e12", lecture: 5, section: "example", title: "12", category: "대표 & 확인", mainAns: "$2\\sqrt{13}$", checkAns: "$\\sqrt{30}$" },
+            { id: "l5-e13", lecture: 5, section: "example", title: "13", category: "대표 & 확인", mainAns: "최댓값 10, 최솟값 6", checkAns: "$-11, 5$" },
+            { id: "l5-c_tan1", lecture: 5, section: "concept", title: "접선 01", category: "개념 CHECK", mainAns: "(1) $y=2x\\pm5$ <br> (2) $y=2x\\pm10$" },
+            { id: "l5-c_tan2", lecture: 5, section: "concept", title: "접선 02", category: "개념 CHECK", mainAns: "(1) $x+2y-5=0$ <br> (2) $y=-4$" },
+            { id: "l5-c_tan3", lecture: 5, section: "concept", title: "접선 03", category: "개념 CHECK", mainAns: "(1) $y=-x+4, y=x-4$ <br> (2) $x=4, y=-\\frac{3}{4}x+5$" },
+            { id: "l5-e14", lecture: 5, section: "example", title: "14", category: "대표 & 확인", mainAns: "$y=-3x\\pm10$", checkAns: "$-24$" },
+            { id: "l5-e15", lecture: 5, section: "example", title: "15", category: "대표 & 확인", mainAns: "(1) $1$ <br> (2) $7$", checkAns: "$y=4x-26$" },
+            { id: "l5-e16", lecture: 5, section: "example", title: "16", category: "대표 & 확인", mainAns: "$y=-\\frac{11}{2}x+\\frac{25}{2}, y=2x+5$", checkAns: "$-\\frac{8}{15}$" },
+            // 유형학습 L5
+            { id: "l5-s9", lecture: 5, section: "similar", title: "유형 09", category: "유형학습", mainAns: "(1) $-3\\sqrt{2}<k<3\\sqrt{2}$ <br> (2) $k=\\pm3\\sqrt{2}$ <br> (3) $k<-3\\sqrt{2}$ 또는 $k>3\\sqrt{2}$" },
+            { id: "l5-s9-2", lecture: 5, section: "similar", title: "유형 09-2", category: "유형학습", mainAns: "$-\\frac{2}{\\sqrt{3}}$" },
+            { id: "l5-s10", lecture: 5, section: "similar", title: "유형 10", category: "유형학습", mainAns: "$2\\sqrt{5}$" },
+            { id: "l5-s10-2", lecture: 5, section: "similar", title: "유형 10-2", category: "유형학습", mainAns: "$11\\pi$" },
+            { id: "l5-s11", lecture: 5, section: "similar", title: "유형 11", category: "유형학습", mainAns: "$2\\sqrt{7}$" },
+            { id: "l5-s11-2", lecture: 5, section: "similar", title: "유형 11-2", category: "유형학습", mainAns: "$2.6$" },
+            { id: "l5-s12", lecture: 5, section: "similar", title: "유형 12", category: "유형학습", mainAns: "$2\\sqrt{3}$" },
+            { id: "l5-s13", lecture: 5, section: "similar", title: "유형 13", category: "유형학습", mainAns: "최댓값 7, 최솟값 1" },
+
+            // ================= LECTURE 6: 도형의 이동 (평행이동/대칭이동) =================
+            { id: "l6-c1", lecture: 6, section: "concept", title: "01", category: "개념 CHECK", mainAns: "(1) $(5, 4)$ <br> (2) $(-8, -5)$ <br> (3) $(6, 1)$" },
+            { id: "l6-c2", lecture: 6, section: "concept", title: "02", category: "개념 CHECK", mainAns: "(1) $x-3y-12=0$ <br> (2) $y=2x^2-4x-7$ <br> (3) $(x-1)^2+(y+4)^2=5$" },
+            { id: "l6-e1", lecture: 6, section: "example", title: "01", category: "대표 & 확인", mainAns: "(1) $-9$ <br> (2) $(8, 3)$", checkAns: "$2$" },
+            { id: "l6-e2", lecture: 6, section: "example", title: "02", category: "대표 & 확인", mainAns: "(1) $y=2x-8$ <br> (2) $-\\frac{10}{3}$", checkAns: "$-3$" },
+            { id: "l6-e3", lecture: 6, section: "example", title: "03", category: "대표 & 확인", mainAns: "$-8$", checkAns: "$(6, -10)$" },
+            { id: "l6-c_sym1", lecture: 6, section: "concept", title: "대칭 01", category: "개념 CHECK", mainAns: "(1) $(-2, -1)$ <br> (2) $(2, 1)$ <br> (3) $(2, 1)$ <br> (4) $(1, -2)$" },
+            { id: "l6-c_sym2", lecture: 6, section: "concept", title: "대칭 02", category: "개념 CHECK", mainAns: "(1) $(x+2)^2+(y+1)^2=12$ <br> (2) $(x-2)^2+(y-1)^2=12$ <br> (3) $(x-2)^2+(y+1)^2=12$ <br> (4) $(x-1)^2+(y+2)^2=12$" },
+            { id: "l6-e4", lecture: 6, section: "example", title: "04", category: "대표 & 확인", mainAns: "$10$", checkAns: "$10$" },
+            { id: "l6-e5", lecture: 6, section: "example", title: "05", category: "대표 & 확인", mainAns: "$(x-5)^2+(y-2)^2=10$", checkAns: "$3$" },
+            { id: "l6-e6", lecture: 6, section: "example", title: "06", category: "대표 & 확인", mainAns: "$-10, -6$", checkAns: "$-12$" },
+            // 유형학습 L6
+            { id: "l6-s1", lecture: 6, section: "similar", title: "유형 01", category: "유형학습", mainAns: "$6$" },
+            { id: "l6-s2", lecture: 6, section: "similar", title: "유형 02", category: "유형학습", mainAns: "$y=-2x-4$" },
+            { id: "l6-s3", lecture: 6, section: "similar", title: "유형 03", category: "유형학습", mainAns: "$4$" },
+            { id: "l6-s4", lecture: 6, section: "similar", title: "유형 04", category: "유형학습", mainAns: "$12$" },
+            { id: "l6-s4-2", lecture: 6, section: "similar", title: "유형 04-2", category: "유형학습", mainAns: "$3$" },
+            { id: "l6-s5", lecture: 6, section: "similar", title: "유형 05", category: "유형학습", mainAns: "(1) $\\frac{5}{2}$ <br> (2) $(x-4)^2+(y+3)^2=4$" },
+            { id: "l6-s6", lecture: 6, section: "similar", title: "유형 06", category: "유형학습", mainAns: "$6$" }
+        ];
+
+        // --- HANDLERS ---
+        window.switchLecture = (l) => {
+            state.activeLecture = l;
+            LocalDB.save(state.checkedIds);
+            updateUI();
+        };
+
+        window.setFilter = (f) => {
+            state.filter = f;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                if (btn.dataset.filter === f) {
+                    btn.className = "filter-btn px-5 py-2 rounded-full text-xs font-black bg-slate-800 text-white shadow-md transition-all";
+                } else {
+                    btn.className = "filter-btn px-5 py-2 rounded-full text-xs font-black bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition-all";
+                }
+            });
+            renderGrid();
+        };
+
+        const toggleProblem = (id) => {
+            const nextChecked = new Set(state.checkedIds);
+            if (nextChecked.has(id)) nextChecked.delete(id);
+            else nextChecked.add(id);
+            
+            state.checkedIds = nextChecked;
+            LocalDB.save(nextChecked);
+            updateUI();
+        };
+
+        window.toggleSpoilerMode = (val) => {
+            state.spoilerMode = val;
+            renderGrid();
+        };
+
+        // --- INIT CHART FUNCTION ---
+        const initChart = () => {
+            const ctx = document.getElementById('lectureChart').getContext('2d');
+            const centerTextPlugin = {
+                id: 'centerText',
+                beforeDraw: (chart) => {
+                    const { width, height, ctx } = chart;
+                    ctx.restore();
+                    const fontSize = (height / 120).toFixed(2);
+                    ctx.font = `bold ${fontSize}em sans-serif`;
+                    ctx.textBaseline = "middle";
+                    ctx.fillStyle = "#1e293b";
+                    
+                    const lectureProbs = allProblems.filter(p => p.lecture === state.activeLecture);
+                    const lectureChecked = lectureProbs.filter(p => state.checkedIds.has(p.id)).length;
+                    const percent = lectureProbs.length > 0 ? Math.round((lectureChecked / lectureProbs.length) * 100) : 0;
+                    
+                    const text = `${percent}%`;
+                    const textX = Math.round((width - ctx.measureText(text).width) / 2);
+                    const textY = height / 2;
+                    ctx.fillText(text, textX, textY);
+                    ctx.save();
+                }
+            };
+
+            progressChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['완료', '미완료'],
+                    datasets: [{
+                        data: [0, 100],
+                        backgroundColor: ['#4f46e5', '#f1f5f9'],
+                        borderWidth: 0,
+                        hoverOffset: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '78%',
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                    animation: { duration: 600 }
+                },
+                plugins: [centerTextPlugin]
+            });
+        };
+
+        // --- UI FUNCTIONS ---
+        const updateUI = () => {
+            const lectureTitles = [
+                "1차시: 평면좌표 (점과 좌표)", 
+                "2차시: 직선의 방정식", 
+                "3차시: 두 직선의 위치 관계와 거리", 
+                "4차시: 원의 방정식", 
+                "5차시: 원과 직선의 위치 관계", 
+                "6차시: 도형의 이동 (평행/대칭)"
+            ];
+            document.getElementById('current-lecture-title').innerText = lectureTitles[state.activeLecture-1];
+            
+            const lectureProbs = allProblems.filter(p => p.lecture === state.activeLecture);
+            const lectureChecked = lectureProbs.filter(p => state.checkedIds.has(p.id)).length;
+            document.getElementById('lecture-progress-text').innerText = `${lectureChecked}/${lectureProbs.length}`;
+            
+            const totalPercent = allProblems.length > 0 ? Math.round((state.checkedIds.size / allProblems.length) * 100) : 0;
+            document.getElementById('total-progress-percent').innerText = `${totalPercent}%`;
+
+            if (progressChart) {
+                progressChart.data.datasets[0].data = [lectureChecked, Math.max(0, lectureProbs.length - lectureChecked)];
+                progressChart.update();
+            }
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                const l = parseInt(btn.dataset.lecture);
+                if (l === state.activeLecture) {
+                    btn.classList.add('active-tab');
+                } else {
+                    btn.classList.remove('active-tab');
+                }
+            });
+
+            renderGrid();
+        };
+
+        const createCard = (prob) => {
+            const isChecked = state.checkedIds.has(prob.id);
+            const spoilerClass = state.spoilerMode ? 'spoiler-active' : '';
+            let colorClass = prob.section === 'concept' ? "border-emerald-100 bg-emerald-50/20" : 
+                            (prob.section === 'similar' ? "border-amber-100 bg-amber-50/20" : "border-indigo-100 bg-white");
+            const checkBtnStyle = isChecked ? "bg-emerald-500 text-white" : "bg-white text-slate-400";
+
+            // Enhanced answer formatter for horizontal readability
+            const formatAns = (ans) => {
+                if (!ans) return "";
+                const safeAns = String(ans);
+                
+                // Use regex to split by <br> tags while preserving content
+                const parts = safeAns.split(/<br\s*\/?>/i);
+                
+                if (parts.length > 1) {
+                    return `<div class="ans-inline-container">
+                        ${parts.map(p => {
+                            let content = p.trim(); 
+                            if (!content) return '';
+                            // Use inline-block spans with margin for natural flow
+                            return `<span class="ans-inline-item">${content}</span>`;
+                        }).join('')}
+                    </div>`;
+                }
+                return `<div class="math-text">${safeAns}</div>`;
+            };
+
+            let ansContent = prob.category === '대표 & 확인' 
+                ? `<div class="space-y-4">
+                    <div>
+                        <span class="text-[10px] font-black text-slate-400 block mb-1.5 ml-1">대표예제</span>
+                        <div class="p-3 bg-white/70 rounded-xl math-text ${spoilerClass}" onclick="this.classList.toggle('spoiler-revealed')">${formatAns(prob.mainAns)}</div>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-black text-slate-400 block mb-1.5 ml-1">확인문제</span>
+                        <div class="p-3 bg-white/70 rounded-xl math-text ${spoilerClass}" onclick="this.classList.toggle('spoiler-revealed')">${formatAns(prob.checkAns)}</div>
+                    </div>
+                   </div>`
+                : `<div class="p-4 bg-white/70 rounded-xl math-text ${spoilerClass}" onclick="this.classList.toggle('spoiler-revealed')">${formatAns(prob.mainAns)}</div>`;
+
+            const div = document.createElement('div');
+            div.className = `p-5 rounded-3xl border shadow-sm flex flex-col justify-between card-hover ${colorClass} relative overflow-hidden`;
+            div.innerHTML = `
+                ${isChecked ? '<div class="absolute top-0 right-0 w-8 h-8 bg-emerald-500 transform rotate-45 translate-x-4 -translate-y-4"></div>' : ''}
+                <div class="mb-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-[10px] px-2.5 py-1 rounded-full font-black uppercase bg-white/90 border border-slate-100 shadow-sm">${prob.category}</span>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-800 mb-4 tracking-tight">문제 ${prob.title}</h3>
+                    ${ansContent}
+                </div>
+                <button id="btn-${prob.id}" class="mt-4 w-full py-2.5 rounded-2xl text-xs font-black border transition-all ${checkBtnStyle}">
+                    ${isChecked ? '완료' : '진도 체크'}
+                </button>`;
+            
+            div.querySelector(`#btn-${prob.id}`).addEventListener('click', () => toggleProblem(prob.id));
+            return div;
+        };
+
+        const renderGrid = () => {
+            const grid = document.getElementById('problems-grid');
+            grid.innerHTML = '';
+            
+            const filtered = allProblems.filter(p => {
+                const matchLecture = p.lecture === state.activeLecture;
+                const matchFilter = state.filter === 'all' || p.section === state.filter;
+                const matchSearch = p.title.toLowerCase().includes(state.search.toLowerCase());
+                return matchLecture && matchFilter && matchSearch;
+            });
+
+            filtered.forEach(p => grid.appendChild(createCard(p)));
+
+            // Trigger MathJax re-render safely
+            mathJaxPromise = mathJaxPromise.then(() => {
+                if (window.MathJax && window.MathJax.typesetPromise) {
+                    return window.MathJax.typesetPromise();
+                }
+                return Promise.resolve();
+            }).catch(err => console.error('MathJax render error:', err));
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            state.checkedIds = LocalDB.load();
+            initChart();
+            updateUI();
+
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                state.search = e.target.value;
+                renderGrid();
+            });
+
+            document.getElementById('spoiler-toggle').addEventListener('change', (e) => {
+                toggleSpoilerMode(e.target.checked);
+            });
+            
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.addEventListener('click', () => switchLecture(parseInt(btn.dataset.lecture)));
+            });
+
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', () => setFilter(btn.dataset.filter));
+            });
+        });
+    </script>
+
+    <style>
+        .chart-container { height: 200px; }
+        .spoiler-active { filter: blur(7px); cursor: pointer; transition: 0.3s; }
+        .spoiler-revealed { filter: none !important; }
+        .card-hover { transition: 0.25s ease-out; }
+        .card-hover:hover { transform: translateY(-6px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
+        .active-tab { background-color: #4f46e5; color: white; box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.4); }
+        .math-text { font-size: 1.05em; line-height: 1.6; color: #334155; font-weight: 500; }
+        
+        /* Updated styles for proper inline-block flow */
+        .ans-inline-container {
+            display: block;
+        }
+        .ans-inline-item {
+            display: inline-block;
+            margin-right: 1.25rem; /* Space between items */
+            margin-bottom: 0.25rem; /* Small vertical gap if wrapped */
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+
+    <div class="max-w-7xl mx-auto px-4 py-8 flex flex-col min-h-screen">
+
+        <!-- Header -->
+        <header class="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-6 border-b pb-8 border-slate-200">
+            <div>
+                <h1 class="text-3xl font-black text-slate-900 tracking-tight">
+                    공통수학2 <span class="text-indigo-600">통합 정답 대시보드</span>
+                </h1>
+                <div class="text-[11px] font-black mt-2 uppercase tracking-widest text-emerald-500">
+                    로컬 저장소 모드 (인터넷 불필요)
+                </div>
+            </div>
+            
+            <nav class="flex p-1 bg-slate-200 rounded-2xl overflow-x-auto shadow-inner">
+                <button class="nav-btn px-5 py-2.5 rounded-xl text-xs font-black whitespace-nowrap transition-all active-tab" data-lecture="1">1차시</button>
+                <button class="nav-btn px-5 py-2.5 rounded-xl text-xs font-black whitespace-nowrap transition-all" data-lecture="2">2차시</button>
+                <button class="nav-btn px-5 py-2.5 rounded-xl text-xs font-black whitespace-nowrap transition-all" data-lecture="3">3차시</button>
+                <button class="nav-btn px-5 py-2.5 rounded-xl text-xs font-black whitespace-nowrap transition-all" data-lecture="4">4차시</button>
+                <button class="nav-btn px-5 py-2.5 rounded-xl text-xs font-black whitespace-nowrap transition-all" data-lecture="5">5차시</button>
+                <button class="nav-btn px-5 py-2.5 rounded-xl text-xs font-black whitespace-nowrap transition-all" data-lecture="6">6차시</button>
+            </nav>
+        </header>
+
+        <!-- Stats Section -->
+        <section class="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-10">
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-center">
+                <div class="chart-container w-full">
+                    <canvas id="lectureChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="lg:col-span-3 bg-indigo-900 text-white p-8 rounded-3xl relative overflow-hidden shadow-xl">
+                <div class="z-10 relative">
+                    <div class="flex justify-between items-start mb-4">
+                        <h2 class="text-2xl font-black tracking-tight">
+                            <span id="current-lecture-title">1차시: 평면좌표 (점과 좌표)</span>
+                        </h2>
+                    </div>
+                    <p class="text-indigo-100 text-sm mb-6 leading-relaxed opacity-90">
+                        현재 <strong>로컬 테스트 모드</strong>로 실행 중입니다. 데이터는 브라우저에 자동 저장되지만, 
+                        다른 기기와 동기화되지 않습니다. 모든 수식은 MathJax로 렌더링됩니다.
+                    </p>
+                    
+                    <div class="flex gap-6">
+                        <div class="bg-white/10 px-5 py-3 rounded-2xl border border-white/20 backdrop-blur-sm">
+                            <span class="block text-[9px] text-indigo-300 uppercase font-black mb-1">차시 진도</span>
+                            <span class="text-2xl font-black" id="lecture-progress-text">0/0</span>
+                        </div>
+                        <div class="bg-emerald-500/20 px-5 py-3 rounded-2xl border border-emerald-500/30 backdrop-blur-sm">
+                            <span class="block text-[9px] text-emerald-300 uppercase font-black mb-1">통합 학습률</span>
+                            <span class="text-2xl font-black" id="total-progress-percent">0%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute -right-20 -bottom-20 w-64 h-64 bg-white/5 rounded-full blur-3xl"></div>
+            </div>
+        </section>
+
+        <!-- Control Bar -->
+        <div class="sticky top-6 z-40 bg-white/90 backdrop-blur-xl p-5 mb-10 rounded-3xl border border-slate-200 shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="flex flex-wrap gap-2.5">
+                <button class="filter-btn px-5 py-2 rounded-full text-xs font-black bg-slate-800 text-white shadow-md transition-all" data-filter="all">전체</button>
+                <button class="filter-btn px-5 py-2 rounded-full text-xs font-black bg-white border border-slate-200 hover:bg-slate-50 transition-all" data-filter="concept">개념 CHECK</button>
+                <button class="filter-btn px-5 py-2 rounded-full text-xs font-black bg-white border border-slate-200 hover:bg-slate-50 transition-all" data-filter="example">대표 & 확인</button>
+                <button class="filter-btn px-5 py-2 rounded-full text-xs font-black bg-white border border-slate-200 hover:bg-slate-50 transition-all" data-filter="similar">유형학습</button>
+            </div>
+
+            <div class="flex items-center gap-6 w-full md:w-auto">
+                <div class="relative w-full md:w-56">
+                    <input type="text" id="search-input" placeholder="문제 번호 검색..." class="w-full px-4 py-2.5 bg-slate-100 rounded-2xl text-sm border-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                </div>
+                <label class="flex items-center cursor-pointer group">
+                    <input type="checkbox" id="spoiler-toggle" class="sr-only peer">
+                    <div class="w-11 h-6 bg-slate-300 rounded-full peer-checked:bg-indigo-600 transition-all relative after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-4 after:w-4 peer-checked:after:translate-x-5 shadow-inner"></div>
+                    <span class="ml-3 text-xs font-black text-slate-600 group-hover:text-indigo-600">정답 가리기</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Problems Grid -->
+        <main id="problems-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 pb-16">
+            <!-- Cards Generated Dynamicly -->
+        </main>
+
+        <!-- Footer -->
+        <footer class="mt-auto py-12 text-center border-t border-slate-200">
+            <p class="text-[11px] text-slate-400 font-black uppercase tracking-[0.2em]">
+                © 2025 GongSoo2 Learning Dashboard. Local Storage Mode.
+            </p>
+        </footer>
+
+    </div>
+</body>
+</html>
