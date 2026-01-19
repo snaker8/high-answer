@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대수 통합 정답 대시보드</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 320px;
+            height: 240px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .spoiler-active {
+            filter: blur(8px);
+            user-select: none;
+            cursor: pointer;
+            transition: filter 0.3s ease;
+        }
+        .spoiler-active:hover { filter: blur(3px); }
+        .spoiler-revealed { filter: none !important; }
+
+        .card-hover {
+            transition: all 0.2s ease-in-out;
+        }
+        .card-hover:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+        }
+
+        .math-text {
+            font-family: 'Times New Roman', 'Segoe UI', serif;
+            line-height: 1.8;
+            font-size: 1.1em;
+        }
+
+        sup { font-size: 0.75em; vertical-align: super; line-height: 0; }
+        sub { font-size: 0.75em; vertical-align: sub; line-height: 0; }
+        
+        .active-tab {
+            background-color: #4f46e5;
+            color: white;
+            box-shadow: 0 4px 12px -2px rgba(79, 70, 229, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans antialiased">
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 min-h-screen flex flex-col">
+
+        <!-- Header -->
+        <header class="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-200 pb-6">
+            <div>
+                <h1 class="text-3xl font-black text-slate-900 tracking-tight">
+                    대수 <span class="text-indigo-600">통합 정답 대시보드</span>
+                </h1>
+                <p class="text-slate-500 mt-1 font-medium italic">1~5차시 데이터 완비 (지수방정식/부등식 추가)</p>
+            </div>
+            
+            <nav class="flex p-1 bg-slate-200 rounded-xl w-fit overflow-x-auto max-w-full" id="lecture-nav">
+                <button onclick="switchLecture(1)" class="nav-btn px-4 py-2 rounded-lg text-sm font-bold transition-all active-tab whitespace-nowrap" data-lecture="1">1차시: 지수</button>
+                <button onclick="switchLecture(2)" class="nav-btn px-4 py-2 rounded-lg text-sm font-bold transition-all text-slate-600 hover:bg-white/50 whitespace-nowrap" data-lecture="2">2차시: 로그</button>
+                <button onclick="switchLecture(3)" class="nav-btn px-4 py-2 rounded-lg text-sm font-bold transition-all text-slate-600 hover:bg-white/50 whitespace-nowrap" data-lecture="3">3차시: 지수함수</button>
+                <button onclick="switchLecture(4)" class="nav-btn px-4 py-2 rounded-lg text-sm font-bold transition-all text-slate-600 hover:bg-white/50 whitespace-nowrap" data-lecture="4">4차시: 로그함수</button>
+                <button onclick="switchLecture(5)" class="nav-btn px-4 py-2 rounded-lg text-sm font-bold transition-all text-slate-600 hover:bg-white/50 whitespace-nowrap" data-lecture="5">5차시: 방정식/부등식</button>
+            </nav>
+        </header>
+
+        <!-- Status Summary -->
+        <section class="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+            <div class="lg:col-span-1 bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col items-center justify-center">
+                <div class="chart-container">
+                    <canvas id="lectureChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="lg:col-span-3 bg-indigo-900 text-white p-8 rounded-3xl shadow-xl flex flex-col justify-between relative overflow-hidden">
+                <div class="z-10">
+                    <h2 class="text-2xl font-black mb-3 flex items-center gap-3">
+                        <span id="current-lecture-title">1차시: 거듭제곱과 지수</span>
+                        <span class="text-sm font-normal bg-white/20 px-3 py-1 rounded-full text-indigo-100 uppercase tracking-widest" id="lecture-code">L1</span>
+                    </h2>
+                    <p class="text-indigo-100/80 text-sm max-w-2xl mb-6 leading-relaxed">
+                        선택한 차시의 모든 정답 데이터를 탐색할 수 있습니다. 각 카드의 우측 하단 체크 버튼을 클릭하여 본인의 학습 진행도를 시각적으로 추적하세요. 
+                        스포일러 방지 모드가 활성화된 경우 내용을 클릭하여 블러를 해제할 수 있습니다.
+                    </p>
+                    
+                    <div class="flex flex-wrap gap-4">
+                        <div class="bg-white/10 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/20 min-w-[140px]">
+                            <span class="block text-[10px] uppercase font-black text-indigo-300 tracking-tighter mb-1">차시 완료 문항</span>
+                            <span class="text-3xl font-black tracking-tighter" id="lecture-progress-text">0/0</span>
+                        </div>
+                        <div class="bg-emerald-500/20 backdrop-blur-md px-6 py-4 rounded-2xl border border-emerald-500/30 min-w-[140px]">
+                            <span class="block text-[10px] uppercase font-black text-emerald-300 tracking-tighter mb-1">통합 전체 달성도</span>
+                            <span class="text-3xl font-black tracking-tighter" id="total-progress-percent">0%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="absolute -right-16 -bottom-16 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl"></div>
+            </div>
+        </section>
+
+        <!-- Filter & Utility Bar -->
+        <div class="sticky top-4 z-40 bg-white/90 backdrop-blur-xl p-4 mb-6 rounded-2xl shadow-lg border border-slate-200 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex flex-wrap gap-2" id="section-filters">
+                <button onclick="setFilter('all')" class="filter-btn px-5 py-2 rounded-full text-xs font-black bg-slate-800 text-white shadow-md shadow-slate-200" data-filter="all">ALL</button>
+                <button onclick="setFilter('concept')" class="filter-btn px-5 py-2 rounded-full text-xs font-black bg-white border border-slate-200 text-slate-600 hover:bg-slate-50" data-filter="concept">개념 CHECK</button>
+                <button onclick="setFilter('example')" class="filter-btn px-5 py-2 rounded-full text-xs font-black bg-white border border-slate-200 text-slate-600 hover:bg-slate-50" data-filter="example">대표 & 확인</button>
+                <button onclick="setFilter('similar')" class="filter-btn px-5 py-2 rounded-full text-xs font-black bg-white border border-slate-200 text-slate-600 hover:bg-slate-50" data-filter="similar">유형학습</button>
+            </div>
+
+            <div class="flex items-center gap-4 w-full md:w-auto">
+                <div class="relative flex-grow md:w-64">
+                    <input type="text" id="search-input" placeholder="문항 번호 또는 정답 내용 검색..." class="w-full pl-4 pr-4 py-2.5 bg-slate-100 border-none rounded-2xl text-sm font-medium focus:ring-2 focus:ring-indigo-500 transition-all">
+                </div>
+                <label class="flex items-center cursor-pointer group shrink-0">
+                    <input type="checkbox" id="spoiler-toggle" class="sr-only peer" onchange="toggleSpoilerMode(this.checked)">
+                    <div class="w-12 h-7 bg-slate-300 rounded-full peer-checked:bg-indigo-600 transition-all relative after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-5"></div>
+                    <span class="ml-2 text-xs font-black text-slate-600 group-hover:text-indigo-600 transition-colors tracking-tighter">정답 가리기</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Problems Grid -->
+        <main id="problems-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pb-12">
+            <!-- Dynamic Content -->
+        </main>
+
+        <footer class="mt-auto border-t border-slate-200 pt-8 pb-12 text-center">
+            <p class="text-slate-400 text-[10px] font-black tracking-widest uppercase mb-4">Algebra Integrated Solutions Master v2.3</p>
+            <div class="flex justify-center gap-8 opacity-40 grayscale">
+                <div class="text-[10px] font-bold">L1 EXPONENTS</div>
+                <div class="text-[10px] font-bold">L2 LOGARITHMS</div>
+                <div class="text-[10px] font-bold">L3 EXP FUNCTIONS</div>
+                <div class="text-[10px] font-bold">L4 LOG FUNCTIONS</div>
+                <div class="text-[10px] font-bold">L5 EQUATIONS</div>
+            </div>
+        </footer>
+
+    </div>
+
+    <script>
+        /**
+         * --- COMPLETE DATA REPOSITORY (1차시 ~ 5차시) ---
+         */
+        const allProblems = [
+            // L1: 거듭제곱과 지수
+            { id: "l1-c1", lecture: 1, section: "concept", title: "01", category: "개념 CHECK", topic: "거듭제곱근", content: "(1) -5 <br> (2) -4, 4" },
+            { id: "l1-c2", lecture: 1, section: "concept", title: "02", category: "개념 CHECK", topic: "거듭제곱근", content: "(1) 0.2 <br> (2) 5 <br> (3) -10" },
+            { id: "l1-c3", lecture: 1, section: "concept", title: "03", category: "개념 CHECK", topic: "성질", content: "(1) 2 <br> (2) 49 <br> (3) 6 <br> (4) 5" },
+            { id: "l1-e1", lecture: 1, section: "example", title: "예제 01", category: "대표 & 확인", topic: "성질", mainAns: "(1) -9 <br> (2) (8, 3)", checkAns: "6√5" },
+            { id: "l1-e2", lecture: 1, section: "example", title: "예제 02", category: "대표 & 확인", topic: "성질", mainAns: "⑤", checkAns: "3" },
+            { id: "l1-ce1", lecture: 1, section: "concept", title: "확장 01", category: "개념 CHECK", topic: "지수 확장", content: "(1) 9/8 <br> (2) 25" },
+            { id: "l1-ce2", lecture: 1, section: "concept", title: "확장 02", category: "개념 CHECK", topic: "지수 확장", content: "(1) 1/81 <br> (2) -1/8 <br> (3) 1/a <br> (4) a⁷b¹¹" },
+            { id: "l1-ce3", lecture: 1, section: "concept", title: "확장 03", category: "개념 CHECK", topic: "지수 확장", content: "(1) a<sup>3/4</sup> <br> (2) a<sup>1/3</sup>" },
+            { id: "l1-ce4", lecture: 1, section: "concept", title: "확장 04", category: "개념 CHECK", topic: "실수 지수", content: "(1) 2 <br> (2) 9 <br> (3) 2<sup>√2</sup> <br> (4) 25 <br> (5) a<sup>1/3</sup>b² <br> (6) a<sup>2√2</sup>" },
+            { id: "l1-e3", lecture: 1, section: "example", title: "예제 03", category: "대표 & 확인", topic: "법칙", mainAns: "(1) 6 (2) 5 (3) 64/27", checkAns: "(1) 13/12 (2) 9/64" },
+            { id: "l1-e4", lecture: 1, section: "example", title: "예제 04", category: "대표 & 확인", topic: "대소", mainAns: "(1) -6, -3, -2, -1 <br> (2) ∛3 < ⁶√11 < ∜5", checkAns: "5" },
+            { id: "l1-e5", lecture: 1, section: "example", title: "예제 05", category: "대표 & 확인", topic: "활용", mainAns: "풀이 참조", checkAns: "14" },
+            { id: "l1-e6", lecture: 1, section: "example", title: "예제 06", category: "대표 & 확인", topic: "변형", mainAns: "(1) 23 (2) 110", checkAns: "14" },
+            { id: "l1-e7", lecture: 1, section: "example", title: "예제 07", category: "대표 & 확인", topic: "변형", mainAns: "(1) 1/2 (2) 26/33", checkAns: "2√2 - 1" },
+            { id: "l1-e8", lecture: 1, section: "example", title: "예제 08", category: "대표 & 확인", topic: "변형", mainAns: "(1) -3 (2) 0", checkAns: "(1) 8 (2) 196" },
+            { id: "l1-s1", lecture: 1, section: "similar", title: "유사 01-1", category: "유형학습", topic: "성질", content: "④" },
+            { id: "l1-s2", lecture: 1, section: "similar", title: "유사 02-1", category: "유형학습", topic: "성질", content: "(1) -3 (2) 25 (3) 4 (4) 2/3" },
+            { id: "l1-s3", lecture: 1, section: "similar", title: "유사 03", category: "유형학습", topic: "법칙", content: "(1) 5/8 <br> (2) m = -1/3, n = 1/4" },
+            { id: "l1-s4", lecture: 1, section: "similar", title: "유사 04-1", category: "유형학습", topic: "대소", content: "(1) 1, 2, 4, 8 <br> (2) √14 < √2 < √3" },
+            { id: "l1-s5", lecture: 1, section: "similar", title: "유사 05-1", category: "유형학습", topic: "활용", content: "(1) x - y (2) x + 1/y" },
+            { id: "l1-s6", lecture: 1, section: "similar", title: "유사 06-1", category: "유형학습", topic: "변형", content: "(1) 18 (2) 76" },
+            { id: "l1-s6-2", lecture: 1, section: "similar", title: "유사 06-2", category: "유형학습", topic: "변형", content: "14" },
+            { id: "l1-s7-1", lecture: 1, section: "similar", title: "유사 07-1", category: "유형학습", topic: "변형", content: "(1) 3 (2) 7/4" },
+            { id: "l1-s7-2", lecture: 1, section: "similar", title: "유사 07-2", category: "유형학습", topic: "변형", content: "31/5" },
+            { id: "l1-s8-1", lecture: 1, section: "similar", title: "유사 08-1", category: "유형학습", topic: "변형", content: "(1) 2 (2) 0" },
+            { id: "l1-s8-2", lecture: 1, section: "similar", title: "유사 08-2", category: "유형학습", topic: "변형", content: "(1) 1/2 (2) 18" },
+
+            // L2: 로그
+            { id: "l2-c1", lecture: 2, section: "concept", title: "뜻 01", category: "개념 CHECK", topic: "로그 정의", content: "(1) 1/81 <br> (2) 2√2 <br> (3) 2<sup>4/3</sup> <br> (4) 49" },
+            { id: "l2-c2", lecture: 2, section: "concept", title: "뜻 02", category: "개념 CHECK", topic: "조건", content: "(1) x > 10 <br> (2) 0 < x < 3 <br> (3) -7 < x < -6 (또는 x > -6) <br> (4) -4 < x < -3 (또는 -3 < x < 2 또는 x > 2)" },
+            { id: "l2-e1", lecture: 2, section: "example", title: "예제 01", category: "대표 & 확인", topic: "정의", mainAns: "(1) 4 (2) 1/4 (3) 9", checkAns: "18" },
+            { id: "l2-cp1", lecture: 2, section: "concept", title: "성질 01", category: "개념 CHECK", topic: "기본성질", content: "(1) 3 (2) 7/2 (3) 5 (4) 1/2" },
+            { id: "l2-cp2", lecture: 2, section: "concept", title: "성질 02", category: "개념 CHECK", topic: "연산", content: "(1) 3 (2) 1" },
+            { id: "l2-cp3", lecture: 2, section: "concept", title: "성질 03", category: "개념 CHECK", topic: "지수결합", content: "(1) 4 (2) 3/10 (3) 9√3 (4) 21" },
+            { id: "l2-e2", lecture: 2, section: "example", title: "예제 02", category: "대표 & 확인", topic: "연산", mainAns: "(1) 1 (2) 3", checkAns: "45" },
+            { id: "l2-e3", lecture: 2, section: "example", title: "예제 03", category: "대표 & 확인", topic: "문자표현", mainAns: "(1) 24 (2) 1 (3) 12", checkAns: "(1) a+2/b (2) (ab+1)/(b+1) (3) (ab-2b-1)/(ab+b)" },
+            { id: "l2-e4", lecture: 2, section: "example", title: "예제 04", category: "대표 & 확인", topic: "성질", mainAns: "(1) -19/2 (2) 1 (3) 3", checkAns: "(1) 16 (2) 16" },
+            { id: "l2-e5", lecture: 2, section: "example", title: "예제 05", category: "대표 & 확인", topic: "밑변환", mainAns: "(1) -5/2 (2) log 7 (3) log₁₂6", checkAns: "(1) 1/3 (2) 20" },
+            { id: "l2-e6", lecture: 2, section: "example", title: "예제 06", category: "대표 & 확인", topic: "이차방정식", mainAns: "-9/2", checkAns: "(1) 6 (2) 0" },
+            { id: "l2-cc1", lecture: 2, section: "concept", title: "상용 01", category: "개념 CHECK", topic: "값찾기", content: "(1) 4 (2) 2/3 (3) 3" },
+            { id: "l2-cc2", lecture: 2, section: "concept", title: "상용 02", category: "개념 CHECK", topic: "상용로그표", content: "(1) 2.5694 (2) -2.4306 (3) 0.1898" },
+            { id: "l2-e7", lecture: 2, section: "example", title: "예제 07", category: "대표 & 확인", topic: "상용활용", mainAns: "(1) 1.6811 (2) 1.1761", checkAns: "(1) 10, 10<sup>3/2</sup> (2) 10<sup>9/4</sup>, 10<sup>5/2</sup>, 10<sup>11/4</sup>" },
+            { id: "l2-e8", lecture: 2, section: "example", title: "예제 08", category: "대표 & 확인", topic: "정수소수", mainAns: "105", checkAns: "10⁶" },
+            { id: "l2-s1-1", lecture: 2, section: "similar", title: "유사 01-1", category: "유형학습", topic: "정의", content: "(1) 25 (2) 81 (3) 2 < x < 3" },
+            { id: "l2-s1-2", lecture: 2, section: "similar", title: "유사 01-2", category: "유형학습", topic: "정의", content: "5" },
+            { id: "l2-s2-1", lecture: 2, section: "similar", title: "유사 02-1", category: "유형학습", topic: "성질", content: "(1) 0 (2) 2 (3) -2" },
+            { id: "l2-s2-2", lecture: 2, section: "similar", title: "유사 02-2", category: "유형학습", topic: "성질", content: "(1) 6 (2) -2" },
+            { id: "l2-s3-1", lecture: 2, section: "similar", title: "유사 03-1", category: "유형학습", topic: "성질", content: "(1) 15 (2) 2 (3) 1/2 + log₃5" },
+            { id: "l2-s3-2", lecture: 2, section: "similar", title: "유사 03-2", category: "유형학습", topic: "성질", content: "(1) 8/5 (2) 14" },
+            { id: "l2-s4-1", lecture: 2, section: "similar", title: "유사 04-1", category: "유형학습", topic: "성질", content: "(1) 16/3 (2) 100 (3) 5" },
+            { id: "l2-s4-2", lecture: 2, section: "similar", title: "유사 04-2", category: "유형학습", topic: "성질", content: "36" },
+            { id: "l2-s5", lecture: 2, section: "similar", title: "유사 05", category: "유형학습", topic: "성질", content: "(1) 53/10 (2) 2 (3) 3" },
+            { id: "l2-s6-1", lecture: 2, section: "similar", title: "유사 06-1", category: "유형학습", topic: "활용", content: "34" },
+            { id: "l2-s6-2", lecture: 2, section: "similar", title: "유사 06-2", category: "유형학습", topic: "활용", content: "2" },
+            { id: "l2-s7-1", lecture: 2, section: "similar", title: "유사 07-1", category: "유형학습", topic: "상용로그", content: "(1) 1.7481 (2) 2.2431" },
+            { id: "l2-s7-2", lecture: 2, section: "similar", title: "유사 07-2", category: "유형학습", topic: "상용로그", content: "(1) 2.6857 (2) 0.0485" },
+            { id: "l2-s8", lecture: 2, section: "similar", title: "유사 08", category: "유형학습", topic: "상용로그", content: "③" },
+
+            // L3: 지수함수
+            { id: "l3-c1", lecture: 3, section: "concept", title: "01", category: "개념 CHECK", topic: "함수 판별", content: "ㄱ, ㄴ, ㄹ, ㅂ" },
+            { id: "l3-c2", lecture: 3, section: "concept", title: "02", category: "개념 CHECK", topic: "함수 성질", content: "ㄱ, ㄷ, ㄹ" },
+            { id: "l3-c3", lecture: 3, section: "concept", title: "03", category: "개념 CHECK", topic: "그래프", content: "(1) 점근선: y=0 <br> (2) 점근선: y=-2 <br> (3) 점근선: y=0 <br> (4) 점근선: y=0" },
+            { id: "l3-c4", lecture: 3, section: "concept", title: "04", category: "개념 CHECK", topic: "최대최소", content: "(1) Max: 5, Min: 1/25 <br> (2) Max: 1, Min: 1/64 <br> (3) Max: 32, Min: 1/2 <br> (4) Max: 1/9, Min: 1/243" },
+            { id: "l3-e1", lecture: 3, section: "example", title: "예제 01", category: "대표 & 확인", topic: "성질", mainAns: "ㄱ, ㄷ", checkAns: "ㄱ, ㄴ, ㄷ" },
+            { id: "l3-e2", lecture: 3, section: "example", title: "예제 02", category: "대표 & 확인", topic: "함숫값", mainAns: "(1) 4 (2) -6", checkAns: "(1) -12 (2) -1" },
+            { id: "l3-e3", lecture: 3, section: "example", title: "예제 03", category: "대표 & 확인", topic: "평행이동", mainAns: "풀이 참조 (그래프)", checkAns: "8" },
+            { id: "l3-e4", lecture: 3, section: "example", title: "예제 04", category: "대표 & 확인", topic: "함숫값", mainAns: "5/2", checkAns: "1/625" },
+            { id: "l3-e5", lecture: 3, section: "example", title: "예제 05", category: "대표 & 확인", topic: "대소비교", mainAns: "(1) ∛16 < 2<sup>3/2</sup> < (1/2)⁻² <br> (2) b < a < 1 < c", checkAns: "5<sup>9/4</sup>" },
+            { id: "l3-e6", lecture: 3, section: "example", title: "예제 06", category: "대표 & 확인", topic: "최대최소", mainAns: "(1) 7, 13/3 <br> (2) 8/3, 32/27", checkAns: "1" },
+            { id: "l3-e7", lecture: 3, section: "example", title: "예제 07", category: "대표 & 확인", topic: "최대최소", mainAns: "(1) 9/4 (2) 82/9", checkAns: "√3/3" },
+            { id: "l3-e8", lecture: 3, section: "example", title: "예제 08", category: "대표 & 확인", topic: "산술기하", mainAns: "77/2", checkAns: "1/3" },
+            { id: "l3-e9", lecture: 3, section: "example", title: "예제 09", category: "대표 & 확인", topic: "방정식", mainAns: "(1) 10 (2) -27", checkAns: "9" },
+            { id: "l3-s1-1", lecture: 3, section: "similar", title: "유사 01-1", category: "유형학습", topic: "판별", content: "③" },
+            { id: "l3-s1-2", lecture: 3, section: "similar", title: "유사 01-2", category: "유형학습", topic: "판별", content: "③, ⑤" },
+            { id: "l3-s2-1", lecture: 3, section: "similar", title: "유사 02-1", category: "유형학습", topic: "함숫값", content: "7" },
+            { id: "l3-s2-2", lecture: 3, section: "similar", title: "유사 02-2", category: "유형학습", topic: "함숫값", content: "4" },
+            { id: "l3-s4-1", lecture: 3, section: "similar", title: "유사 04-1", category: "유형학습", topic: "함숫값", content: "27" },
+            { id: "l3-s4-2", lecture: 3, section: "similar", title: "유사 04-2", category: "유형학습", topic: "함숫값", content: "12" },
+            { id: "l3-s5", lecture: 3, section: "similar", title: "유사 05", category: "유형학습", topic: "대소비교", content: "(1) B < C < A <br> (2) c < d < a < b" },
+            { id: "l3-s6-1", lecture: 3, section: "similar", title: "유사 06-1", category: "유형학습", topic: "최대최소", content: "(1) Max: 18, Min: -2 <br> (2) Max: 16, Min: √2/16" },
+            { id: "l3-s6-2", lecture: 3, section: "similar", title: "유사 06-2", category: "유형학습", topic: "최대최소", content: "10" },
+            { id: "l3-s7-1", lecture: 3, section: "similar", title: "유사 07-1", category: "유형학습", topic: "최대최소", content: "(1) 30 (2) 34" },
+            { id: "l3-s7-2", lecture: 3, section: "similar", title: "유사 07-2", category: "유형학습", topic: "최대최소", content: "514" },
+            { id: "l3-s8-1", lecture: 3, section: "similar", title: "유사 08-1", category: "유형학습", topic: "산술기하", content: "(1) Max: 22, Min: 2 <br> (2) Max: 1, Min: -5/4" },
+            { id: "l3-s8-2", lecture: 3, section: "similar", title: "유사 08-2", category: "유형학습", topic: "산술기하", content: "2" },
+            { id: "l3-s9-1", lecture: 3, section: "similar", title: "유사 09-1", category: "유형학습", topic: "방정식", content: "(1) 14 (2) -11" },
+            { id: "l3-s9-2", lecture: 3, section: "similar", title: "유사 09-2", category: "유형학습", topic: "방정식", content: "5" },
+
+            // L4: 로그함수
+            { id: "l4-c1", lecture: 4, section: "concept", title: "01", category: "개념 CHECK", topic: "정의역", content: "(1) x > 1 <br> (2) x > 2" },
+            { id: "l4-c2", lecture: 4, section: "concept", title: "02", category: "개념 CHECK", topic: "그래프성질", content: "(1) x=1 (2) x=0 <br> (3) x=0 (4) x=0" },
+            { id: "l4-c3", lecture: 4, section: "concept", title: "03", category: "개념 CHECK", topic: "최대최소", content: "(1) 2, -1 (2) 0, -2 <br> (3) 3, 0 (4) 0, -2" },
+            { id: "l4-e10", lecture: 4, section: "example", title: "예제 10", category: "대표 & 확인", topic: "함숫값", mainAns: "풀이 참조", checkAns: "-5" },
+            { id: "l4-e11", lecture: 4, section: "example", title: "예제 11", category: "대표 & 확인", topic: "평행이동", mainAns: "(1) 3 (2) a=3, b=6", checkAns: "1/4" },
+            { id: "l4-e12", lecture: 4, section: "example", title: "예제 12", category: "대표 & 확인", topic: "절댓값 그래프", mainAns: "풀이 참조 (그래프)", checkAns: "10" },
+            { id: "l4-e13", lecture: 4, section: "example", title: "예제 13", category: "대표 & 확인", topic: "역함수", mainAns: "1/2", checkAns: "1/4 < x < 1" },
+            { id: "l4-e14", lecture: 4, section: "example", title: "예제 14", category: "대표 & 확인", topic: "미정계수", mainAns: "a=7, b=2", checkAns: "14" },
+            { id: "l4-e15", lecture: 4, section: "example", title: "예제 15", category: "대표 & 확인", topic: "대소비교", mainAns: "(1) log₃2 < log⅓(2/5) < log√₃√5 <br> (2) log<sub>b</sub>(a/b) < log<sub>a</sub>b < log<sub>b</sub>a", checkAns: "log_{1/25}15 < log_{1/5}√11 < log_{1/5}(1/3)" },
+            { id: "l4-e16", lecture: 4, section: "example", title: "예제 16", category: "대표 & 확인", topic: "최대최소", mainAns: "(1) 0, -2 (2) -2, -3", checkAns: "(1) -1, -3 (2) 3/2, 0" },
+            { id: "l4-e17", lecture: 4, section: "example", title: "예제 17", category: "대표 & 확인", topic: "방정식/값", mainAns: "(1) 0 (2) 4", checkAns: "-2" },
+            { id: "l4-e18", lecture: 4, section: "example", title: "예제 18", category: "대표 & 확인", topic: "치환최대최소", mainAns: "(1) 18, -7 (2) 0, -9", checkAns: "9, Max: 32, Min: 1/16" },
+            { id: "l4-e19", lecture: 4, section: "example", title: "예제 19", category: "대표 & 확인", topic: "산술기하", mainAns: "(1) 4 (2) 6", checkAns: "4" },
+            { id: "l4-s10-1", lecture: 4, section: "similar", title: "유사 10-1", category: "유형학습", topic: "정의역", content: "④" },
+            { id: "l4-s10-2", lecture: 4, section: "similar", title: "유사 10-2", category: "유형학습", topic: "정의역", content: "a < 3" },
+            { id: "l4-s11-1", lecture: 4, section: "similar", title: "유사 11-1", category: "유형학습", topic: "평행이동", content: "(1) 8 (2) 13/2" },
+            { id: "l4-s11-2", lecture: 4, section: "similar", title: "유사 11-2", category: "유형학습", topic: "평행이동", content: "③" },
+            { id: "l4-s12", lecture: 4, section: "similar", title: "유사 12", category: "유형학습", topic: "절댓값", content: "풀이 참조 (그래프)" },
+            { id: "l4-s13-1", lecture: 4, section: "similar", title: "유사 13-1", category: "유형학습", topic: "역함수", content: "20" },
+            { id: "l4-s13-2", lecture: 4, section: "similar", title: "유사 13-2", category: "유형학습", topic: "역함수", content: "log₃7" },
+            { id: "l4-s14-1", lecture: 4, section: "similar", title: "유사 14-1", category: "유형학습", topic: "미정계수", content: "(1) 27 (2) 3" },
+            { id: "l4-s14-2", lecture: 4, section: "similar", title: "유사 14-2", category: "유형학습", topic: "미정계수", content: "√5" },
+            { id: "l4-s15-1", lecture: 4, section: "similar", title: "유사 15-1", category: "유형학습", topic: "대소비교", content: "(1) ½log<sub>√6</sub>6 < ... <br> (2) log₂₇√7 < log₉2 < log₈₁5" },
+            { id: "l4-s15-2", lecture: 4, section: "similar", title: "유사 15-2", category: "유형학습", topic: "대소비교", content: "f(a/b) < f(a) < f(b)" },
+            { id: "l4-s16-1", lecture: 4, section: "similar", title: "유사 16-1", category: "유형학습", topic: "최대최소", content: "(1) 3, 2 (2) -3, -4" },
+            { id: "l4-s16-2", lecture: 4, section: "similar", title: "유사 16-2", category: "유형학습", topic: "최대최소", content: "1" },
+            { id: "l4-s17-1", lecture: 4, section: "similar", title: "유사 17-1", category: "유형학습", topic: "함숫값", content: "(1) -1 (2) 6" },
+            { id: "l4-s17-2", lecture: 4, section: "similar", title: "유사 17-2", category: "유형학습", topic: "함숫값", content: "(1) 2 (2) 1" },
+            { id: "l4-s18-1", lecture: 4, section: "similar", title: "유사 18-1", category: "유형학습", topic: "치환최대최소", content: "(1) 23, -2 (2) 7, 3" },
+            { id: "l4-s18-2", lecture: 4, section: "similar", title: "유사 18-2", category: "유형학습", topic: "치환최대최소", content: "19" },
+            { id: "l4-s19-1", lecture: 4, section: "similar", title: "유사 19-1", category: "유형학습", topic: "산술기하", content: "(1) -2 (2) 11" },
+            { id: "l4-s19-2", lecture: 4, section: "similar", title: "유사 19-2", category: "유형학습", topic: "실생활", content: "2000" },
+
+            // L5: 지수방정식과 지수부등식 (New from PDF)
+            { id: "l5-c1", lecture: 5, section: "concept", title: "01", category: "개념 CHECK", topic: "방정식", content: "(1) x=2 <br> (2) x=-1 또는 x=3" },
+            { id: "l5-c2", lecture: 5, section: "concept", title: "02", category: "개념 CHECK", topic: "방정식", content: "(1) x=2 <br> (2) x=-1 또는 x=3" },
+            { id: "l5-c3", lecture: 5, section: "concept", title: "03", category: "개념 CHECK", topic: "방정식", content: "(1) x=3 또는 x=0 <br> (2) x=1 또는 x=3" },
+            { id: "l5-c4", lecture: 5, section: "concept", title: "04", category: "개념 CHECK", topic: "부등식", content: "(1) x ≤ -3 <br> (2) x < 1" },
+            { id: "l5-c5", lecture: 5, section: "concept", title: "05", category: "개념 CHECK", topic: "부등식", content: "(1) x > 1 <br> (2) x ≥ -2" },
+            
+            { id: "l5-e1", lecture: 5, section: "example", title: "예제 01", category: "대표 & 확인", topic: "방정식 기초", mainAns: "x = -1/3", checkAns: "-16" },
+            { id: "l5-e2", lecture: 5, section: "example", title: "예제 02", category: "대표 & 확인", topic: "방정식 활용", mainAns: "(1) x = log₂10 <br> (2) x = -1", checkAns: "(2) x = -1 또는 x = 4" },
+            { id: "l5-e3", lecture: 5, section: "example", title: "예제 03", category: "대표 & 확인", topic: "부등식 기초", mainAns: "(1) 1 < x < 6 <br> (2) x ≤ 0 또는 x ≥ 7/2", checkAns: "-4 < x < 2" },
+            { id: "l5-e4", lecture: 5, section: "example", title: "예제 04", category: "대표 & 확인", topic: "부등식 활용", mainAns: "(1) x < -log₂3 <br> (2) x ≤ 1", checkAns: "데이터 없음" },
+            { id: "l5-e5", lecture: 5, section: "example", title: "예제 05", category: "대표 & 확인", topic: "방정식 해", mainAns: "(1) 5 (2) 7/4", checkAns: "데이터 없음" },
+            { id: "l5-e6", lecture: 5, section: "example", title: "예제 06", category: "대표 & 확인", topic: "부등식 해", mainAns: "(1) x=1,2 (2) x=2,4 <br> (3) 0 < x < 1 또는 x > 8", checkAns: "데이터 없음" },
+            { id: "l5-e7", lecture: 5, section: "example", title: "예제 07", category: "대표 & 확인", topic: "실근 조건", mainAns: "(1) k ≥ 9/2 (2) k ≥ -3", checkAns: "6" },
+            { id: "l5-e8", lecture: 5, section: "example", title: "예제 08", category: "대표 & 확인", topic: "실생활 활용", mainAns: "20", checkAns: "②" },
+            
+            { id: "l5-s1-1", lecture: 5, section: "similar", title: "유사 01-1", category: "유형학습", topic: "방정식", content: "(1) x=2,3 (2) x=0,-2,1/2" },
+            { id: "l5-s1-2", lecture: 5, section: "similar", title: "유사 01-2", category: "유형학습", topic: "방정식", content: "-10" },
+            { id: "l5-s2-1", lecture: 5, section: "similar", title: "유사 02-1", category: "유형학습", topic: "방정식", content: "(1) x=-1 (2) x=1" },
+            { id: "l5-s2-2", lecture: 5, section: "similar", title: "유사 02-2", category: "유형학습", topic: "방정식", content: "(1) x=0 (2) 9" },
+            { id: "l5-s3-1", lecture: 5, section: "similar", title: "유사 03-1", category: "유형학습", topic: "부등식", content: "40" },
+            { id: "l5-s3-2", lecture: 5, section: "similar", title: "유사 03-2", category: "유형학습", topic: "부등식", content: "30" },
+            { id: "l5-s4-1", lecture: 5, section: "similar", title: "유사 04-1", category: "유형학습", topic: "부등식", content: "(1) 0 ≤ x ≤ 2 (2) x > 1" },
+            { id: "l5-s4-2", lecture: 5, section: "similar", title: "유사 04-2", category: "유형학습", topic: "부등식", content: "7" },
+            { id: "l5-s5-1", lecture: 5, section: "similar", title: "유사 05-1", category: "유형학습", topic: "방정식", content: "(1) 1 (2) 8/3" },
+            { id: "l5-s5-2", lecture: 5, section: "similar", title: "유사 05-2", category: "유형학습", topic: "방정식", content: "1/2" },
+            { id: "l5-s6-1", lecture: 5, section: "similar", title: "유사 06-1", category: "유형학습", topic: "부등식", content: "(1) x=1,5 (2) x=1/2,2 (3) 0<x<1, 3<x<4" },
+            { id: "l5-s6-2", lecture: 5, section: "similar", title: "유사 06-2", category: "유형학습", topic: "부등식", content: "(1) x=-6,-4,5 (2) 15" },
+            { id: "l5-s7-1", lecture: 5, section: "similar", title: "유사 07-1", category: "유형학습", topic: "실근조건", content: "(1) k > 77/4 (2) k ≤ 5" },
+            { id: "l5-s7-2", lecture: 5, section: "similar", title: "유사 07-2", category: "유형학습", topic: "실근조건", content: "3/4" },
+            { id: "l5-s8-1", lecture: 5, section: "similar", title: "유사 08-1", category: "유형학습", topic: "실생활", content: "250 hPa" },
+            { id: "l5-s8-2", lecture: 5, section: "similar", title: "유사 08-2", category: "유형학습", topic: "실생활", content: "18시간" }
+        ];
+
+        // --- GLOBAL STATE ---
+        const state = {
+            activeLecture: 1,
+            filter: 'all',
+            search: '',
+            spoilerMode: false,
+            checkedIds: new Set()
+        };
+
+        let progressChart = null;
+
+        // --- FUNCTIONS ---
+        function initChart() {
+            const ctx = document.getElementById('lectureChart').getContext('2d');
+            const centerTextPlugin = {
+                id: 'centerText',
+                beforeDraw: function(chart) {
+                    const { width, height, ctx } = chart;
+                    ctx.restore();
+                    const fontSize = (height / 100).toFixed(2);
+                    ctx.font = `black ${fontSize}em sans-serif`;
+                    ctx.textBaseline = "middle";
+                    ctx.fillStyle = "#1e293b";
+                    
+                    const lectureProbs = allProblems.filter(p => p.lecture === state.activeLecture);
+                    const lectureChecked = lectureProbs.filter(p => state.checkedIds.has(p.id)).length;
+                    const percent = lectureProbs.length > 0 ? Math.round((lectureChecked / lectureProbs.length) * 100) : 0;
+                    
+                    const text = `${percent}%`;
+                    const textX = Math.round((width - ctx.measureText(text).width) / 2);
+                    const textY = height / 2;
+                    ctx.fillText(text, textX, textY);
+                    ctx.save();
+                }
+            };
+
+            progressChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['완료', '미완료'],
+                    datasets: [{
+                        data: [0, 100],
+                        backgroundColor: ['#4f46e5', '#f1f5f9'],
+                        borderWidth: 0,
+                        hoverOffset: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '82%',
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                    animation: { duration: 800 }
+                },
+                plugins: [centerTextPlugin]
+            });
+        }
+
+        function updateUI() {
+            const lectureTitles = [
+                "1차시: 거듭제곱과 지수", 
+                "2차시: 로그의 정의와 성질", 
+                "3차시: 지수함수의 뜻과 그래프",
+                "4차시: 로그함수의 뜻과 그래프",
+                "5차시: 지수방정식과 지수부등식"
+            ];
+            const codes = ["L1", "L2", "L3", "L4", "L5"];
+            document.getElementById('current-lecture-title').innerText = lectureTitles[state.activeLecture-1];
+            document.getElementById('lecture-code').innerText = codes[state.activeLecture-1];
+            
+            const lectureProbs = allProblems.filter(p => p.lecture === state.activeLecture);
+            const lectureChecked = lectureProbs.filter(p => state.checkedIds.has(p.id)).length;
+            document.getElementById('lecture-progress-text').innerText = `${lectureChecked}/${lectureProbs.length}`;
+            
+            const totalPercent = allProblems.length > 0 ? Math.round((state.checkedIds.size / allProblems.length) * 100) : 0;
+            document.getElementById('total-progress-percent').innerText = `${totalPercent}%`;
+
+            if (progressChart) {
+                progressChart.data.datasets[0].data = [lectureChecked, Math.max(0, lectureProbs.length - lectureChecked)];
+                progressChart.update();
+            }
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                parseInt(btn.dataset.lecture) === state.activeLecture ? btn.classList.add('active-tab') : btn.classList.remove('active-tab');
+            });
+
+            renderGrid();
+        }
+
+        function createCard(prob) {
+            const isChecked = state.checkedIds.has(prob.id);
+            const spoilerClass = state.spoilerMode ? 'spoiler-active' : '';
+            
+            let colorClass = "border-slate-200 bg-white";
+            let badgeColor = "bg-slate-100 text-slate-700";
+            
+            if (prob.section === 'concept') { colorClass = "border-emerald-100 bg-emerald-50/20"; badgeColor = "bg-emerald-100 text-emerald-700"; }
+            else if (prob.section === 'example') { colorClass = "border-indigo-100 bg-indigo-50/20"; badgeColor = "bg-indigo-100 text-indigo-700"; }
+            else if (prob.section === 'similar') { colorClass = "border-amber-100 bg-amber-50/20"; badgeColor = "bg-amber-100 text-amber-700"; }
+
+            const checkBtnStyle = isChecked 
+                ? "bg-emerald-500 text-white border-emerald-500 shadow-sm" 
+                : "bg-white text-slate-400 border-slate-200 hover:border-indigo-400 hover:text-indigo-600";
+
+            let answerHtml = '';
+            if (prob.section === 'example') {
+                answerHtml = `
+                    <div class="space-y-3">
+                        <div>
+                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">대표예제</span>
+                            <div class="mt-1 p-3 bg-white/80 rounded-2xl border border-slate-100 font-mono text-sm math-text ${spoilerClass}" onclick="this.classList.toggle('spoiler-revealed')">${prob.mainAns}</div>
+                        </div>
+                        <div>
+                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">확인문제</span>
+                            <div class="mt-1 p-3 bg-white/80 rounded-2xl border border-slate-100 font-mono text-sm math-text ${spoilerClass}" onclick="this.classList.toggle('spoiler-revealed')">${prob.checkAns}</div>
+                        </div>
+                    </div>`;
+            } else {
+                answerHtml = `
+                    <div>
+                        <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest">정답 데이터</span>
+                        <div class="mt-1 p-4 bg-white/80 rounded-2xl border border-slate-100 font-mono text-sm math-text ${spoilerClass}" onclick="this.classList.toggle('spoiler-revealed')">${prob.content}</div>
+                    </div>`;
+            }
+
+            const div = document.createElement('div');
+            div.className = `p-6 rounded-[2rem] border shadow-sm flex flex-col justify-between card-hover ${colorClass} relative overflow-hidden`;
+            div.innerHTML = `
+                ${isChecked ? '<div class="absolute top-0 right-0 w-12 h-12 bg-emerald-500 transform rotate-45 translate-x-6 -translate-y-6 flex items-end justify-center pb-1 pr-1"><span class="text-white text-[10px] font-black -rotate-45">✓</span></div>' : ''}
+                <div class="mb-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="${badgeColor} text-[10px] px-3 py-1 rounded-full font-black uppercase tracking-tight">${prob.category}</span>
+                        <span class="text-[10px] text-slate-400 font-black uppercase tracking-widest opacity-50">${prob.topic}</span>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-800 mb-4 leading-none italic"># ${prob.title}</h3>
+                    ${answerHtml}
+                </div>
+                <div class="pt-4 border-t border-slate-200/30 mt-auto flex justify-end">
+                    <button onclick="toggleProblem('${prob.id}')" class="px-5 py-2 rounded-2xl text-xs font-black transition-all border ${checkBtnStyle}">
+                        ${isChecked ? 'CONFIRMED' : 'CHECK DONE'}
+                    </button>
+                </div>`;
+            return div;
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('problems-grid');
+            grid.innerHTML = '';
+            
+            const filtered = allProblems.filter(p => {
+                const matchLecture = p.lecture === state.activeLecture;
+                const matchFilter = state.filter === 'all' || p.section === state.filter;
+                const searchLower = state.search.toLowerCase();
+                const matchSearch = p.title.toLowerCase().includes(searchLower) || 
+                                    p.topic.toLowerCase().includes(searchLower) ||
+                                    (p.content && p.content.toLowerCase().includes(searchLower));
+                return matchLecture && matchFilter && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-24 text-center">
+                    <div class="text-6xl mb-4 opacity-10">🕵️</div>
+                    <p class="text-slate-400 font-black">데이터를 찾을 수 없습니다.</p>
+                </div>`;
+                return;
+            }
+
+            filtered.forEach(p => grid.appendChild(createCard(p)));
+        }
+
+        // HANDLERS
+        window.switchLecture = (l) => { state.activeLecture = l; updateUI(); };
+        window.setFilter = (f) => {
+            state.filter = f;
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.dataset.filter === f ? btn.className = "filter-btn px-5 py-2 rounded-full text-xs font-black bg-slate-800 text-white shadow-md shadow-slate-200" : btn.className = "filter-btn px-5 py-2 rounded-full text-xs font-black bg-white border border-slate-200 text-slate-600 hover:bg-slate-50";
+            });
+            renderGrid();
+        };
+        window.toggleProblem = (id) => { state.checkedIds.has(id) ? state.checkedIds.delete(id) : state.checkedIds.add(id); updateUI(); };
+        window.toggleSpoilerMode = (val) => { state.spoilerMode = val; renderGrid(); };
+        document.getElementById('search-input').addEventListener('input', (e) => { state.search = e.target.value; renderGrid(); });
+
+        document.addEventListener('DOMContentLoaded', () => { initChart(); updateUI(); });
+    </script>
+</body>
+</html>
