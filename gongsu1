@@ -33,7 +33,7 @@
 
     <script>
         // --- LOCAL STORAGE MANAGER ---
-        const STORAGE_KEY = 'math1_learning_progress_v5_final_completed';
+        const STORAGE_KEY = 'math1_learning_progress_v6_final_fixed';
 
         const LocalDB = {
             save: (checkedIds) => {
@@ -72,15 +72,15 @@
             { id: "l1-e4", lecture: 1, section: "example", title: "04", category: "대표 & 확인", mainAns: "(1) $x^3+9x^2+26x+24$ <br> (2) $a^3+b^3-6ab+8$ <br> (3) $16x^4+36x^2y^2+81y^2$ <br> (4) $a-1$", checkAns: "$x^4-x^3+2x^2+5x+22$" },
             { id: "l1-e5", lecture: 1, section: "example", title: "05", category: "대표 & 확인", mainAns: "(1) $2x^2+4x^2+3x-4$ <br> (2) $-6x^2+7x^2+6x-8$ <br> (3) $a^2-b^2+c^2-2ac$", checkAns: "$5$" },
             // 유형학습 (1차시)
-            { id: "l1-s1", lecture: 1, section: "similar", title: "유형 01", category: "유형학습", mainAns: "(1) $7x^2+3xy-7y^2$ <br> (2) $6x^2-xy-y^2$" },
+            { id: "l1-s1", lecture: 1, section: "similar", title: "유형 01-1", category: "유형학습", mainAns: "(1) $7x^2+3xy-7y^2$ <br> (2) $6x^2-xy-y^2$" },
             { id: "l1-s1-2", lecture: 1, section: "similar", title: "유형 01-2", category: "유형학습", mainAns: "$29$" },
-            { id: "l1-s2", lecture: 1, section: "similar", title: "유형 02", category: "유형학습", mainAns: "$18$" },
+            { id: "l1-s2", lecture: 1, section: "similar", title: "유형 02-1", category: "유형학습", mainAns: "$18$" },
             { id: "l1-s2-2", lecture: 1, section: "similar", title: "유형 02-2", category: "유형학습", mainAns: "$3$" },
-            { id: "l1-s3", lecture: 1, section: "similar", title: "유형 03", category: "유형학습", mainAns: "(1) $a^2+9b^2+c^2+6ab-6bc-2ca$ <br> (2) $4x^2+y^2-4xy-12x+6y+9$ <br> (3) $x^3+12x^2+48x+64$ <br> (4) $27x^3-27x^2y+9xy^2-y^3$ <br> (5) $x^3+8y^3$ <br> (6) $8x^3-125$" },
+            { id: "l1-s3", lecture: 1, section: "similar", title: "유형 03-1", category: "유형학습", mainAns: "(1) $a^2+9b^2+c^2+6ab-6bc-2ca$ <br> (2) $4x^2+y^2-4xy-12x+6y+9$ <br> (3) $x^3+12x^2+48x+64$ <br> (4) $27x^3-27x^2y+9xy^2-y^3$ <br> (5) $x^3+8y^3$ <br> (6) $8x^3-125$" },
             { id: "l1-s3-2", lecture: 1, section: "similar", title: "유형 03-2", category: "유형학습", mainAns: "$64$" },
-            { id: "l1-s4", lecture: 1, section: "similar", title: "유형 04", category: "유형학습", mainAns: "(1) $x^3-7x^2+14x-8$ <br> (2) $a^3-b^3+3ab+1$" },
+            { id: "l1-s4", lecture: 1, section: "similar", title: "유형 04-1", category: "유형학습", mainAns: "(1) $x^3-7x^2+14x-8$ <br> (2) $a^3-b^3+3ab+1$" },
             { id: "l1-s4-2", lecture: 1, section: "similar", title: "유형 04-2", category: "유형학습", mainAns: "(1) $a^4+9a^2b^2+81b^4$ <br> (2) $a^{16}b^{16}$" },
-            { id: "l1-s5", lecture: 1, section: "similar", title: "유형 05", category: "유형학습", mainAns: "$-27$" },
+            { id: "l1-s5", lecture: 1, section: "similar", title: "유형 05-1", category: "유형학습", mainAns: "$-27$" },
             { id: "l1-s5-2", lecture: 1, section: "similar", title: "유형 05-2", category: "유형학습", mainAns: "$5$" },
 
             // ================= LECTURE 2: 나눗셈과 항등식 =================
@@ -101,19 +101,19 @@
             { id: "l2-e1h", lecture: 2, section: "example", title: "01 (항등식)", category: "대표 & 확인", mainAns: "$a=3, b=-2, c=4$", checkAns: "<strong>확인1</strong> (1) $a=1, k=-3$ (2) $a=1, x=-1$<br><strong>확인2</strong> (1) $-32$ (2) $32$ (3) $0$ (4) $-32$" },
             { id: "l2-e2h", lecture: 2, section: "example", title: "02 (항등식)", category: "대표 & 확인", mainAns: "(1) $a=-1, b=0$ <br> (2) $a=-1, b=-2$", checkAns: "$-1$" },
             // 유형학습 (2차시)
-            { id: "l2-s6", lecture: 2, section: "similar", title: "유형 06", category: "유형학습", mainAns: "(1) $63$ <br> (2) $16$" },
+            { id: "l2-s6", lecture: 2, section: "similar", title: "유형 06-1", category: "유형학습", mainAns: "(1) $63$ <br> (2) $16$" },
             { id: "l2-s6-2", lecture: 2, section: "similar", title: "유형 06-2", category: "유형학습", mainAns: "(1) $199$ <br> (2) $75$" },
-            { id: "l2-s7", lecture: 2, section: "similar", title: "유형 07", category: "유형학습", mainAns: "(1) $7$ <br> (2) $18$ <br> (3) $47$ <br> (4) $\\sqrt{5}$ <br> (5) $8\\sqrt{5}$" },
+            { id: "l2-s7", lecture: 2, section: "similar", title: "유형 07-1", category: "유형학습", mainAns: "(1) $7$ <br> (2) $18$ <br> (3) $47$ <br> (4) $\\sqrt{5}$ <br> (5) $8\\sqrt{5}$" },
             { id: "l2-s7-2", lecture: 2, section: "similar", title: "유형 07-2", category: "유형학습", mainAns: "$140\\sqrt{2}$" },
-            { id: "l2-s8", lecture: 2, section: "similar", title: "유형 08", category: "유형학습", mainAns: "(1) $1$ <br> (2) $1$" },
+            { id: "l2-s8", lecture: 2, section: "similar", title: "유형 08-1", category: "유형학습", mainAns: "(1) $1$ <br> (2) $1$" },
             { id: "l2-s8-2", lecture: 2, section: "similar", title: "유형 08-2", category: "유형학습", mainAns: "$19$" },
-            { id: "l2-s9", lecture: 2, section: "similar", title: "유형 09", category: "유형학습", mainAns: "$6$" },
+            { id: "l2-s9", lecture: 2, section: "similar", title: "유형 09-1", category: "유형학습", mainAns: "$6$" },
             { id: "l2-s9-2", lecture: 2, section: "similar", title: "유형 09-2", category: "유형학습", mainAns: "$43$" },
-            { id: "l2-s10", lecture: 2, section: "similar", title: "유형 10", category: "유형학습", mainAns: "(1) $x^2+x-4$ <br> (2) 몫: $3x^2+4x+10$, 나머지: $34$" },
+            { id: "l2-s10", lecture: 2, section: "similar", title: "유형 10-1", category: "유형학습", mainAns: "(1) $x^2+x-4$ <br> (2) 몫: $3x^2+4x+10$, 나머지: $34$" },
             { id: "l2-s10-2", lecture: 2, section: "similar", title: "유형 10-2", category: "유형학습", mainAns: "$-8$" },
-            { id: "l2-s1h", lecture: 2, section: "similar", title: "유형 01(항)", category: "유형학습", mainAns: "$a=-7, b=2, c=12$" },
+            { id: "l2-s1h", lecture: 2, section: "similar", title: "유형 01-1(항)", category: "유형학습", mainAns: "$a=-7, b=2, c=12$" },
             { id: "l2-s1h-2", lecture: 2, section: "similar", title: "유형 01-2(항)", category: "유형학습", mainAns: "(1) $-32$ <br> (2) $32$ <br> (3) $0$ <br> (4) $-32$" },
-            { id: "l2-s2h", lecture: 2, section: "similar", title: "유형 02(항)", category: "유형학습", mainAns: "$a=1, b=-2$" },
+            { id: "l2-s2h", lecture: 2, section: "similar", title: "유형 02-1(항)", category: "유형학습", mainAns: "$a=1, b=-2$" },
             { id: "l2-s2h-2", lecture: 2, section: "similar", title: "유형 02-2(항)", category: "유형학습", mainAns: "$a=6$, 나머지: $x-1$" },
 
             // ================= LECTURE 3: 나머지정리와 인수정리 =================
@@ -129,18 +129,18 @@
             { id: "l3-e8", lecture: 3, section: "example", title: "08", category: "대표 & 확인", mainAns: "(1) $-9$ <br> (2) 몫: $-3x+1$, 나머지: $3$", checkAns: "$3$" },
             { id: "l3-e9", lecture: 3, section: "example", title: "09", category: "대표 & 확인", mainAns: "$a=2, b=7, c=5, d=1$", checkAns: "(1) $a=3, b=7, c=5, d=4$ <br> (2) $4.573$" },
             // 유형학습 (3차시)
-            { id: "l3-s3", lecture: 3, section: "similar", title: "유형 03", category: "유형학습", mainAns: "$10$" },
+            { id: "l3-s3", lecture: 3, section: "similar", title: "유형 03-1", category: "유형학습", mainAns: "$10$" },
             { id: "l3-s3-2", lecture: 3, section: "similar", title: "유형 03-2", category: "유형학습", mainAns: "$3$" },
-            { id: "l3-s4", lecture: 3, section: "similar", title: "유형 04", category: "유형학습", mainAns: "(1) $x-2$ <br> (2) $3x^2+7x$" },
+            { id: "l3-s4", lecture: 3, section: "similar", title: "유형 04-1", category: "유형학습", mainAns: "(1) $x-2$ <br> (2) $3x^2+7x$" },
             { id: "l3-s4-2", lecture: 3, section: "similar", title: "유형 04-2", category: "유형학습", mainAns: "$-2x+6$" },
-            { id: "l3-s5", lecture: 3, section: "similar", title: "유형 05", category: "유형학습", mainAns: "$3$" },
+            { id: "l3-s5", lecture: 3, section: "similar", title: "유형 05-1", category: "유형학습", mainAns: "$3$" },
             { id: "l3-s5-2", lecture: 3, section: "similar", title: "유형 05-2", category: "유형학습", mainAns: "$3$" },
-            { id: "l3-s6", lecture: 3, section: "similar", title: "유형 06", category: "유형학습", mainAns: "$2$" },
+            { id: "l3-s6", lecture: 3, section: "similar", title: "유형 06-1", category: "유형학습", mainAns: "$2$" },
             { id: "l3-s6-2", lecture: 3, section: "similar", title: "유형 06-2", category: "유형학습", mainAns: "$1$" },
-            { id: "l3-s7", lecture: 3, section: "similar", title: "유형 07", category: "유형학습", mainAns: "(1) $a=6, b=-11$ <br> (2) $a=-3, b=0$" },
-            { id: "l3-s8", lecture: 3, section: "similar", title: "유형 08", category: "유형학습", mainAns: "$20$, 몫: $x^2+3x+2$" },
+            { id: "l3-s7", lecture: 3, section: "similar", title: "유형 07-1", category: "유형학습", mainAns: "(1) $a=6, b=-11$ <br> (2) $a=-3, b=0$" },
+            { id: "l3-s8", lecture: 3, section: "similar", title: "유형 08-1", category: "유형학습", mainAns: "$20$, 몫: $x^2+3x+2$" },
             { id: "l3-s8-2", lecture: 3, section: "similar", title: "유형 08-2", category: "유형학습", mainAns: "$4$" },
-            { id: "l3-s9", lecture: 3, section: "similar", title: "유형 09", category: "유형학습", mainAns: "$a=2, b=-5, c=5, d=2$" },
+            { id: "l3-s9", lecture: 3, section: "similar", title: "유형 09-1", category: "유형학습", mainAns: "$a=2, b=-5, c=5, d=2$" },
 
             // ================= LECTURE 4: 인수분해공식 =================
             { id: "l4-c1", lecture: 4, section: "concept", title: "공식 01", category: "개념 CHECK", mainAns: "(1) $(x+2y+3z)^2$ <br> (2) $(2a+2b-c)^2$" },
@@ -156,20 +156,20 @@
             { id: "l4-e5", lecture: 4, section: "example", title: "05", category: "대표 & 확인", mainAns: "(1) $(x-1)(x+2)^2$ <br> (2) $(x+1)(x-2)(x+2)(x-3)$", checkAns: "$(x-3)(x-2)(x+1)$" },
             { id: "l4-e6", lecture: 4, section: "example", title: "06", category: "대표 & 확인", mainAns: "(1) 빗변의 길이가 c인 직각삼각형 <br> (2) $a=c$인 이등변삼각형", checkAns: "ㄴ, ㄷ" },
             { id: "l4-e7", lecture: 4, section: "example", title: "07", category: "대표 & 확인", mainAns: "(1) $48$ <br> (2) $105$", checkAns: "$47$" },
-            // [NEW] Added missing Similar Types for Lecture 4
+            // 유형학습 (4차시 - 누락분 완벽 추가)
             { id: "l4-s1-1", lecture: 4, section: "similar", title: "유형 01-1", category: "유형학습", mainAns: "(1) $(a+4b-c)^2$ <br> (2) $(x+3y)^3$ <br> (3) $(x-2y)(x^2+2xy+4y^2)$ <br> (4) $(2a-b+1)(4a^2+b^2+2ab-2a+b+1)$" },
             { id: "l4-s1-2", lecture: 4, section: "similar", title: "유형 01-2", category: "유형학습", mainAns: "$1$" },
-            { id: "l4-s2", lecture: 4, section: "similar", title: "유형 02", category: "유형학습", mainAns: "(1) $(x^2-3x+3)(x^2-3x-2)$ <br> (2) $(x+1)(x-2)(x+2)(x-3)$ <br> (3) $(x^2+4x+2)(x^2+4x-4)$" },
+            { id: "l4-s2-1", lecture: 4, section: "similar", title: "유형 02-1", category: "유형학습", mainAns: "(1) $(x^2-3x+3)(x^2-3x-2)$ <br> (2) $(x+1)(x-2)(x+2)(x-3)$ <br> (3) $(x^2+4x+2)(x^2+4x-4)$" },
             { id: "l4-s2-2", lecture: 4, section: "similar", title: "유형 02-2", category: "유형학습", mainAns: "$(x^2+5x+8)(x^2+5x+2)$" },
-            { id: "l4-s3", lecture: 4, section: "similar", title: "유형 03", category: "유형학습", mainAns: "(1) $(x+1)(x-1)(x^2+6)$ <br> (2) $(x^2+xy+2y^2)(x^2-xy+2y^2)$" },
+            { id: "l4-s3-1", lecture: 4, section: "similar", title: "유형 03-1", category: "유형학습", mainAns: "(1) $(x+1)(x-1)(x^2+6)$ <br> (2) $(x^2+xy+2y^2)(x^2-xy+2y^2)$" },
             { id: "l4-s3-2", lecture: 4, section: "similar", title: "유형 03-2", category: "유형학습", mainAns: "$13$" },
-            { id: "l4-s4", lecture: 4, section: "similar", title: "유형 04", category: "유형학습", mainAns: "(1) $(x+1)(x+y-2)$ <br> (2) $(y-z)(2x+y-z)$ <br> (3) $(x-y-1)(x^2+x-y+1)$" },
+            { id: "l4-s4-1", lecture: 4, section: "similar", title: "유형 04-1", category: "유형학습", mainAns: "(1) $(x+1)(x+y-2)$ <br> (2) $(y-z)(2x+y-z)$ <br> (3) $(x-y-1)(x^2+x-y+1)$" },
             { id: "l4-s4-2", lecture: 4, section: "similar", title: "유형 04-2", category: "유형학습", mainAns: "$-(a-b)(b-c)(c-a)$" },
-            { id: "l4-s5", lecture: 4, section: "similar", title: "유형 05", category: "유형학습", mainAns: "(1) $(x-1)(x+2)(x-4)$ <br> (2) $(x+2)(2x+3)(x-2)$ <br> (3) $(x-1)^2(x+1)(x+2)$" },
+            { id: "l4-s5-1", lecture: 4, section: "similar", title: "유형 05-1", category: "유형학습", mainAns: "(1) $(x-1)(x+2)(x-4)$ <br> (2) $(x+2)(2x+3)(x-2)$ <br> (3) $(x-1)^2(x+1)(x+2)$" },
             { id: "l4-s5-2", lecture: 4, section: "similar", title: "유형 05-2", category: "유형학습", mainAns: "$-1$" },
-            { id: "l4-s6", lecture: 4, section: "similar", title: "유형 06", category: "유형학습", mainAns: "$1$" },
+            { id: "l4-s6-1", lecture: 4, section: "similar", title: "유형 06-1", category: "유형학습", mainAns: "$1$" },
             { id: "l4-s6-2", lecture: 4, section: "similar", title: "유형 06-2", category: "유형학습", mainAns: "$3$" },
-            { id: "l4-s7", lecture: 4, section: "similar", title: "유형 07", category: "유형학습", mainAns: "(1) $-12-4\\sqrt{3}$ <br> (2) $-2\\sqrt{5}$" },
+            { id: "l4-s7-1", lecture: 4, section: "similar", title: "유형 07-1", category: "유형학습", mainAns: "(1) $-12-4\\sqrt{3}$ <br> (2) $-2\\sqrt{5}$" },
             { id: "l4-s7-2", lecture: 4, section: "similar", title: "유형 07-2", category: "유형학습", mainAns: "(1) $510$ <br> (2) $-120$" },
 
             // ================= LECTURE 5: 복소수 =================
@@ -193,19 +193,19 @@
             { id: "l5-e8", lecture: 5, section: "example", title: "08", category: "대표 & 확인", mainAns: "(1) $-4 + \\frac{5}{2}i$ <br> (2) $-2a-2b$", checkAns: "(1) $3$ <br> (2) $3$" },
             // 유형학습 (5차시)
             { id: "l5-s1", lecture: 5, section: "similar", title: "유형 01", category: "유형학습", mainAns: "ㄱ, ㄹ" },
-            { id: "l5-s2", lecture: 5, section: "similar", title: "유형 02", category: "유형학습", mainAns: "(1) $-5-2i$ <br> (2) $8+i$ <br> (3) $7+i$ <br> (4) $\\frac{3}{10} + \\frac{9}{10}i$" },
+            { id: "l5-s2-1", lecture: 5, section: "similar", title: "유형 02-1", category: "유형학습", mainAns: "(1) $-5-2i$ <br> (2) $8+i$ <br> (3) $7+i$ <br> (4) $\\frac{3}{10} + \\frac{9}{10}i$" },
             { id: "l5-s2-2", lecture: 5, section: "similar", title: "유형 02-2", category: "유형학습", mainAns: "$6$" },
-            { id: "l5-s3", lecture: 5, section: "similar", title: "유형 03", category: "유형학습", mainAns: "(1) $-3$ <br> (2) $-\\frac{1}{4}$" },
+            { id: "l5-s3-1", lecture: 5, section: "similar", title: "유형 03-1", category: "유형학습", mainAns: "(1) $-3$ <br> (2) $-\\frac{1}{4}$" },
             { id: "l5-s3-2", lecture: 5, section: "similar", title: "유형 03-2", category: "유형학습", mainAns: "$2$" },
-            { id: "l5-s4", lecture: 5, section: "similar", title: "유형 04", category: "유형학습", mainAns: "(1) $\\sqrt{3}i$ <br> (2) $30$" },
+            { id: "l5-s4-1", lecture: 5, section: "similar", title: "유형 04-1", category: "유형학습", mainAns: "(1) $\\sqrt{3}i$ <br> (2) $30$" },
             { id: "l5-s4-2", lecture: 5, section: "similar", title: "유형 04-2", category: "유형학습", mainAns: "$-3$" },
-            { id: "l5-s5", lecture: 5, section: "similar", title: "유형 05", category: "유형학습", mainAns: "$20$" },
+            { id: "l5-s5-1", lecture: 5, section: "similar", title: "유형 05-1", category: "유형학습", mainAns: "$20$" },
             { id: "l5-s5-2", lecture: 5, section: "similar", title: "유형 05-2", category: "유형학습", mainAns: "$-2+4i$" },
-            { id: "l5-s6", lecture: 5, section: "similar", title: "유형 06", category: "유형학습", mainAns: "(1) $5-i$ <br> (2) $1+3i$" },
+            { id: "l5-s6-1", lecture: 5, section: "similar", title: "유형 06-1", category: "유형학습", mainAns: "(1) $5-i$ <br> (2) $1+3i$" },
             { id: "l5-s6-2", lecture: 5, section: "similar", title: "유형 06-2", category: "유형학습", mainAns: "$4i$" },
-            { id: "l5-s7", lecture: 5, section: "similar", title: "유형 07", category: "유형학습", mainAns: "$2$" },
+            { id: "l5-s7-1", lecture: 5, section: "similar", title: "유형 07-1", category: "유형학습", mainAns: "$2$" },
             { id: "l5-s7-2", lecture: 5, section: "similar", title: "유형 07-2", category: "유형학습", mainAns: "$-1+i$" },
-            { id: "l5-s8", lecture: 5, section: "similar", title: "유형 08", category: "유형학습", mainAns: "(1) $4\\sqrt{2}i$ <br> (2) $6a+b$" },
+            { id: "l5-s8-1", lecture: 5, section: "similar", title: "유형 08-1", category: "유형학습", mainAns: "(1) $4\\sqrt{2}i$ <br> (2) $6a+b$" },
 
             // ================= LECTURE 6: 이차방정식 =================
             { id: "l6-c1", lecture: 6, section: "concept", title: "01", category: "개념 CHECK", mainAns: "(1) $x=-2$ 또는 $x=4$ <br> (2) $x=-\\frac{1}{3}$ 또는 $x=1$ <br> (3) $x=3$ (중근) <br> (4) $x=-3$ 또는 $x=1$" },
@@ -225,7 +225,7 @@
             { id: "l6-s2", lecture: 6, section: "similar", title: "유형 02", category: "유형학습", mainAns: "$a=0$, 다른 한 근: $3$" },
             { id: "l6-s3-1", lecture: 6, section: "similar", title: "유형 03-1", category: "유형학습", mainAns: "(1) $x=\\pm\\frac{3}{2}$ <br> (2) $x=-4, 3$" },
             { id: "l6-s3-2", lecture: 6, section: "similar", title: "유형 03-2", category: "유형학습", mainAns: "$-2$" },
-            { id: "l6-s4", lecture: 6, section: "similar", title: "유형 04", category: "유형학습", mainAns: "$4m$" },
+            { id: "l6-s4-1", lecture: 6, section: "similar", title: "유형 04-1", category: "유형학습", mainAns: "$4m$" },
             { id: "l6-s4-2", lecture: 6, section: "similar", title: "유형 04-2", category: "유형학습", mainAns: "$8\\text{cm}$" },
             { id: "l6-s5", lecture: 6, section: "similar", title: "유형 05", category: "유형학습", mainAns: "(1) $k>-\\frac{4}{3}$ <br> (2) $k=-\\frac{4}{3}$ <br> (3) $k<-\\frac{4}{3}$" },
             { id: "l6-s6-1", lecture: 6, section: "similar", title: "유형 06-1", category: "유형학습", mainAns: "$\\frac{3}{4}$" },
