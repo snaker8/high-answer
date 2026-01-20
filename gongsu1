@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>공통수학1 학습 대시보드 (반응형 최적화)</title>
+    <title>공통수학1 학습 대시보드 (로컬 저장소 버전)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
@@ -33,7 +33,7 @@
 
     <script>
         // --- LOCAL STORAGE MANAGER ---
-        const STORAGE_KEY = 'math1_learning_progress_v4_flex';
+        const STORAGE_KEY = 'math1_learning_progress_v5_final_completed';
 
         const LocalDB = {
             save: (checkedIds) => {
@@ -59,7 +59,7 @@
         let progressChart = null;
         let mathJaxPromise = Promise.resolve();
 
-        /* COMPLETE DATA SET */
+        /* COMPLETE DATA SET (Refined from PDFs) */
         const allProblems = [
             // ================= LECTURE 1: 다항식의 연산 =================
             { id: "l1-c1", lecture: 1, section: "concept", title: "01", category: "개념 CHECK", mainAns: "(1) $2x^2+xy-y^2-4y+3$ <br> (2) $-y^2-4y+3+xy+2x^2$ <br> (3) $-y^2+(x-4)y+2x^2+3$ <br> (4) $2x^2+3+(x-4)y-y^2$" },
@@ -156,7 +156,9 @@
             { id: "l4-e5", lecture: 4, section: "example", title: "05", category: "대표 & 확인", mainAns: "(1) $(x-1)(x+2)^2$ <br> (2) $(x+1)(x-2)(x+2)(x-3)$", checkAns: "$(x-3)(x-2)(x+1)$" },
             { id: "l4-e6", lecture: 4, section: "example", title: "06", category: "대표 & 확인", mainAns: "(1) 빗변의 길이가 c인 직각삼각형 <br> (2) $a=c$인 이등변삼각형", checkAns: "ㄴ, ㄷ" },
             { id: "l4-e7", lecture: 4, section: "example", title: "07", category: "대표 & 확인", mainAns: "(1) $48$ <br> (2) $105$", checkAns: "$47$" },
-            // 유형학습 (4차시)
+            // [NEW] Added missing Similar Types for Lecture 4
+            { id: "l4-s1-1", lecture: 4, section: "similar", title: "유형 01-1", category: "유형학습", mainAns: "(1) $(a+4b-c)^2$ <br> (2) $(x+3y)^3$ <br> (3) $(x-2y)(x^2+2xy+4y^2)$ <br> (4) $(2a-b+1)(4a^2+b^2+2ab-2a+b+1)$" },
+            { id: "l4-s1-2", lecture: 4, section: "similar", title: "유형 01-2", category: "유형학습", mainAns: "$1$" },
             { id: "l4-s2", lecture: 4, section: "similar", title: "유형 02", category: "유형학습", mainAns: "(1) $(x^2-3x+3)(x^2-3x-2)$ <br> (2) $(x+1)(x-2)(x+2)(x-3)$ <br> (3) $(x^2+4x+2)(x^2+4x-4)$" },
             { id: "l4-s2-2", lecture: 4, section: "similar", title: "유형 02-2", category: "유형학습", mainAns: "$(x^2+5x+8)(x^2+5x+2)$" },
             { id: "l4-s3", lecture: 4, section: "similar", title: "유형 03", category: "유형학습", mainAns: "(1) $(x+1)(x-1)(x^2+6)$ <br> (2) $(x^2+xy+2y^2)(x^2-xy+2y^2)$" },
@@ -360,6 +362,7 @@
                         ${parts.map(p => {
                             let content = p.trim(); 
                             if (!content) return '';
+                            // Use inline-block spans with margin for natural flow
                             return `<span class="ans-inline-item">${content}</span>`;
                         }).join('')}
                     </div>`;
@@ -456,14 +459,12 @@
         
         /* Updated styles for proper inline-block flow */
         .ans-inline-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem 1rem;
-            align-items: baseline;
+            display: block;
         }
         .ans-inline-item {
             display: inline-block;
-            white-space: nowrap; /* Prevent line breaks inside an item unless necessary */
+            margin-right: 1.25rem; /* Space between items */
+            margin-bottom: 0.25rem; /* Small vertical gap if wrapped */
         }
     </style>
 </head>
